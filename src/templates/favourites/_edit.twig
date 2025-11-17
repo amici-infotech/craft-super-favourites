@@ -1,0 +1,174 @@
+{# Edit Favourite Item Template #}
+
+{% extends "_layouts/cp" %}
+
+{% import "_includes/forms" as forms %}
+
+{% set title = (favouriteItem.id ? "Edit Favourite Item"|t('super-favourite') : "New Favourite Item"|t('super-favourite')) %}
+{% set fullPageForm = true %}
+{% set saveShortcutRedirect = 'super-favourite/favourites/{id}' %}
+{% set selectedTab = 'favourite-details' %}
+
+{% block content %}
+    <div id="favourite-details">
+    {{ actionInput('super-favourite/favourite/save') }}
+    {{ redirectInput('super-favourite/favourites') }}
+
+    {% if favouriteItem.id %}
+        {{ hiddenInput('favouriteId', favouriteItem.id) }}
+    {% endif %}
+
+    {{ forms.selectField({
+        first: true,
+        label: "Element Type"|t('super-favourite'),
+        instructions: "Select the type of element to favourite"|t('super-favourite'),
+        id: 'elementType',
+        name: 'elementType',
+        options: elementTypes,
+        value: favouriteItem.elementType,
+        errors: favouriteItem.getErrors('elementType'),
+        required: true
+    }) }}
+
+    <div id="element-select-container">
+        {% if favouriteItem.elementType %}
+            {% set selectLabel = elementTypeLabel ? "Select {type}"|t('super-favourite', { type: elementTypeLabel }) : "Select Element"|t('super-favourite') %}
+            {% set selectInstructions = elementTypeLabel ? "Choose the {type} to add to favourites"|t('super-favourite', { type: elementTypeLabel|lower }) : "Choose the element to add to favourites"|t('super-favourite') %}
+            {{ forms.elementSelectField({
+                label: selectLabel,
+                instructions: selectInstructions,
+                id: 'elementId',
+                name: 'elementId',
+                elementType: favouriteItem.elementType,
+                limit: 1,
+                elements: favouritedElement ? [favouritedElement] : [],
+                errors: favouriteItem.getErrors('elementId'),
+                required: true
+            }) }}
+        {% else %}
+            <p class="light">{{ "Select an element type above to choose an element"|t('super-favourite') }}</p>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    {{ forms.elementSelectField({
+        label: "User"|t('super-favourite'),
+        instructions: "The user who favourited this item"|t('super-favourite'),
+        id: 'userId',
+        name: 'userId',
+        elementType: 'craft\\elements\\User',
+        limit: 1,
+        elements: favouriteItem.userId ? [favouriteItem.getUser()] : [],
+        errors: favouriteItem.getErrors('userId'),
+        required: true
+    }) }}
+
+    {{ forms.elementSelectField({
+        label: "Collection"|t('super-favourite'),
+        instructions: "The collection to add this favourite to. Leave empty to use the default collection."|t('super-favourite'),
+        id: 'collectionId',
+        name: 'collectionId',
+        elementType: 'amici\\SuperFavourite\\elements\\Collection',
+        limit: 1,
+        elements: favouriteItem.collectionId ? [favouriteItem.getCollection()] : [],
+        errors: favouriteItem.getErrors('collectionId')
+    }) }}
+
+    {{ forms.textareaField({
+        label: "Notes"|t('super-favourite'),
+        instructions: "Optional notes about this favourite"|t('super-favourite'),
+        id: 'notes',
+        name: 'notes',
+        value: favouriteItem.notes,
+        errors: favouriteItem.getErrors('notes'),
+        rows: 3
+    }) }}
+
+    </div>{# end content tab #}
+
+    {# Custom Fields Tabs #}
+    {% set fieldLayout = favouriteItem.getFieldLayout() %}
+    {% for tab in fieldLayout.getTabs() %}
+        <div id="{{ tab.getHtmlId() }}" class="hidden">
+            {% for layoutElement in tab.getElements() %}
+                {% if layoutElement is instance of('craft\\fieldlayoutelements\\CustomField') %}
+                    {{ layoutElement.formHtml(favouriteItem)|raw }}
+                {% else %}
+                    {{ layoutElement.formHtml()|raw }}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+{% endblock %}
+
+{% js %}
+// Initialize tabs
+new Craft.Tabs($('#tabs'));
+{% endjs %}
+
+{% block details %}
+    {% if not isNew %}
+        <div class="meta">
+            {{ forms.lightswitchField({
+                label: "Enabled"|t('app'),
+                id: 'enabled',
+                name: 'enabled',
+                on: favouriteItem.enabled
+            }) }}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% js %}
+    // Dynamic element selection based on element type via AJAX
+    (function() {
+        var elementTypeSelect = $('#elementType');
+        var elementSelectContainer = $('#element-select-container');
+
+        elementTypeSelect.on('change', function() {
+            var selectedType = $(this).val();
+
+            if (!selectedType) {
+                elementSelectContainer.html('<p class="light">{{ "Select an element type above to choose an element"|t('super-favourite') }}</p>');
+                return;
+            }
+
+            // Show loading state
+            elementSelectContainer.html('<div class="spinner spinner-absolute"></div>');
+
+            // Fetch the element select field HTML via AJAX
+            Craft.sendActionRequest('POST', 'super-favourite/favourite/get-element-select-html', {
+                data: {
+                    elementType: selectedType
+                }
+            }).then(function(response) {
+                if (response.data.success && response.data.html) {
+                    // Insert the HTML
+                    elementSelectContainer.html(response.data.html);
+
+                    // Execute the registered JavaScript from Craft
+                    if (response.data.js && response.data.js.length > 0) {
+                        try {
+                            eval(response.data.js);
+                        } catch (e) {
+                            console.error('Error executing element selector script:', e);
+                        }
+                    }
+
+                    // Also call Craft.initUiElements as a backup
+                    if (typeof Craft.initUiElements === 'function') {
+                        Craft.initUiElements('#element-select-container');
+                    }
+                } else {
+                    elementSelectContainer.html('<p class="error">{{ "Error loading element selector"|t('super-favourite') }}</p>');
+                }
+            }).catch(function(error) {
+                elementSelectContainer.html('<p class="error">{{ "Error loading element selector"|t('super-favourite') }}</p>');
+                console.error('AJAX Error:', error);
+            });
+        });
+    })();
+{% endjs %}
+

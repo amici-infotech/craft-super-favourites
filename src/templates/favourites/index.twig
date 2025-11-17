@@ -1,0 +1,10 @@
+{# Favourites Index Template #}
+
+{% extends "_layouts/elementindex" %}
+{% set title = "Favourites"|t('super-favourite') %}
+{% set elementType = 'amici\\SuperFavourite\\elements\\FavouriteItem' %}
+
+{% block actionButton %}
+    <a href="{{ cpUrl('super-favourite/favourites/new') }}" class="btn submit add icon">{{ "New favourite"|t('super-favourite') }}</a>
+{% endblock %}
+

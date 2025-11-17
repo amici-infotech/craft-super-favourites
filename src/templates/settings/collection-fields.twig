@@ -1,0 +1,25 @@
+{# Collection Field Layout Settings Template #}
+
+{% extends "super-favourite/settings/_layout" %}
+
+{% import "_includes/forms" as forms %}
+
+{% set title = "Settings"|t('super-favourite') %}
+{% set fullPageForm = true %}
+{% set selectedSubnavItem = 'collection-fields' %}
+
+{% block content %}
+    {{ actionInput('super-favourite/settings/save-collection-field-layout') }}
+    {{ redirectInput('super-favourite/settings/collection-fields') }}
+
+    <h2>{{ "Collection Field Layout"|t('super-favourite') }}</h2>
+    <p>{{ "Configure the fields that will be available for all collections."|t('super-favourite') }}</p>
+
+    {% namespace 'fieldLayout' %}
+        {{ forms.fieldLayoutDesignerField({
+            fieldLayout: fieldLayout,
+        }) }}
+    {% endnamespace %}
+
+{% endblock %}
+

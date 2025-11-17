@@ -1,0 +1,25 @@
+{# Favourite Item Field Layout Settings Template #}
+
+{% extends "super-favourite/settings/_layout" %}
+
+{% import "_includes/forms" as forms %}
+
+{% set title = "Settings"|t('super-favourite') %}
+{% set fullPageForm = true %}
+{% set selectedSubnavItem = 'favourite-fields' %}
+
+{% block content %}
+    {{ actionInput('super-favourite/settings/save-favourite-field-layout') }}
+    {{ redirectInput('super-favourite/settings/favourite-fields') }}
+
+    <h2>{{ "Favourite Item Field Layout"|t('super-favourite') }}</h2>
+    <p>{{ "Configure the fields that will be available for all favourite items."|t('super-favourite') }}</p>
+
+    {% namespace 'fieldLayout' %}
+        {{ forms.fieldLayoutDesignerField({
+            fieldLayout: fieldLayout,
+        }) }}
+    {% endnamespace %}
+
+{% endblock %}
+

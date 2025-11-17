@@ -1,0 +1,13 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.elementSelectField({
+    label: "Select {type}"|t('super-favourite', { type: elementTypeLabel }),
+    instructions: "Choose the {type} to add to favourites"|t('super-favourite', { type: elementTypeLabel|lower }),
+    id: 'elementId',
+    name: 'elementId',
+    elementType: elementType,
+    limit: 1,
+    elements: [],
+    required: true
+}) }}
+

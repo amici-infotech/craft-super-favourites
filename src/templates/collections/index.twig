@@ -1,0 +1,14 @@
+{# Collections Index Template #}
+
+{% extends "_layouts/elementindex" %}
+{% set title = "Collections"|t('super-favourite') %}
+{% set elementType = 'amici\\SuperFavourite\\elements\\Collection' %}
+
+{# Hide the sidebar completely #}
+{% set showSidebar = false %}
+{% set sidebar = null %}
+
+{% block actionButton %}
+    <a href="{{ cpUrl('super-favourite/collections/new') }}" class="btn submit add icon">{{ "New collection"|t('super-favourite') }}</a>
+{% endblock %}
+

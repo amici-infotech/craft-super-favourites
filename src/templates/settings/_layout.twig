@@ -1,0 +1,34 @@
+{# Settings Layout with Sidebar #}
+
+{% extends "_layouts/cp" %}
+
+{% do view.registerTranslations('super-favourite', [
+    'General Settings',
+    'Field Layout',
+]) %}
+
+{% set title = title ?? "Settings"|t('super-favourite') %}
+{% set selectedSubnavItem = selectedSubnavItem ?? 'general' %}
+
+{% set crumbs = [
+    { label: "Settings"|t('app'), url: url('settings') },
+    { label: "Plugins"|t('app'), url: url('settings/plugins') },
+] %}
+
+{% set tabs = {
+    general: {
+        label: "General Settings"|t('super-favourite'),
+        url: url('super-favourite/settings/general')
+    },
+    'collection-fields': {
+        label: "Collection Fields"|t('super-favourite'),
+        url: url('super-favourite/settings/collection-fields')
+    },
+    'favourite-fields': {
+        label: "Favourite Item Fields"|t('super-favourite'),
+        url: url('super-favourite/settings/favourite-fields')
+    }
+} %}
+
+{% set selectedTab = selectedSubnavItem %}
+
