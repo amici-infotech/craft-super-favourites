@@ -12,71 +12,82 @@
 
 {% block content %}
     <div id="collection-details">
-    {{ actionInput('super-favourite/collection/save') }}
-    {{ redirectInput('super-favourite/collections') }}
+        {{ actionInput('super-favourite/collection/save') }}
+        {{ redirectInput('super-favourite/collections') }}
 
-    {% if collection.id %}
-        {{ hiddenInput('collectionId', collection.id) }}
-    {% endif %}
+        {% if collection.id %}
+            {{ hiddenInput('collectionId', collection.id) }}
+        {% endif %}
 
-    {{ forms.textField({
-        first: true,
-        label: "Name"|t('super-favourite'),
-        instructions: "The name of this collection"|t('super-favourite'),
-        id: 'name',
-        name: 'name',
-        value: collection.name,
-        errors: collection.getErrors('name'),
-        autofocus: true,
-        required: true
-    }) }}
-
-    {{ forms.textField({
-        label: "Handle"|t('super-favourite'),
-        instructions: "How you'll refer to this collection in templates"|t('super-favourite'),
-        id: 'handle',
-        name: 'handle',
-        class: 'code ltr',
-        autocomplete: false,
-        value: collection.handle,
-        errors: collection.getErrors('handle'),
-        required: true
-    }) }}
-
-    {{ forms.textareaField({
-        label: "Description"|t('super-favourite'),
-        instructions: "An optional description for this collection"|t('super-favourite'),
-        id: 'description',
-        name: 'description',
-        value: collection.description,
-        errors: collection.getErrors('description'),
-        rows: 3
-    }) }}
-
-    {{ forms.elementSelectField({
-        label: "Assign to User"|t('super-favourite'),
-        instructions: "Assign this collection to a specific user. Leave empty for global collection available to all users."|t('super-favourite'),
-        id: 'userId',
-        name: 'userId',
-        elementType: 'craft\\elements\\User',
-        limit: 1,
-        elements: collection.userId ? [collection.getUser()] : [],
-        errors: collection.getErrors('userId')
-    }) }}
-
-    <div id="default-collection-field">
-        {{ forms.lightswitchField({
-            label: "Default Collection"|t('super-favourite'),
-            instructions: "Whether this is a default collection for new favourites. Only global collections can be default."|t('super-favourite'),
-            id: 'isDefault',
-            name: 'isDefault',
-            value: 1,
-            on: collection.isDefault,
-            errors: collection.getErrors('isDefault'),
-            disabled: collection.userId ? true : false
+        {{ forms.textField({
+            first: true,
+            label: "Name"|t('super-favourite'),
+            instructions: "The name of this collection"|t('super-favourite'),
+            id: 'name',
+            name: 'name',
+            value: collection.name,
+            errors: collection.getErrors('name'),
+            autofocus: true,
+            required: true
         }) }}
-    </div>
 
+        {{ forms.textField({
+            label: "Handle"|t('super-favourite'),
+            instructions: "How you'll refer to this collection in templates"|t('super-favourite'),
+            id: 'handle',
+            name: 'handle',
+            class: 'code ltr',
+            autocomplete: false,
+            value: collection.handle,
+            errors: collection.getErrors('handle'),
+            required: true
+        }) }}
+
+        {{ forms.textareaField({
+            label: "Description"|t('super-favourite'),
+            instructions: "An optional description for this collection"|t('super-favourite'),
+            id: 'description',
+            name: 'description',
+            value: collection.description,
+            errors: collection.getErrors('description'),
+            rows: 3
+        }) }}
+
+        {{ forms.elementSelectField({
+            label: "Assign to User"|t('super-favourite'),
+            instructions: "Assign this collection to a specific user. Leave empty for global collection available to all users."|t('super-favourite'),
+            id: 'userId',
+            name: 'userId',
+            elementType: 'craft\\elements\\User',
+            limit: 1,
+            elements: collection.userId ? [collection.getUser()] : [],
+            errors: collection.getErrors('userId')
+        }) }}
+
+        <div id="default-collection-field">
+            {{ forms.lightswitchField({
+                label: "Default Collection"|t('super-favourite'),
+                instructions: "Whether this is a default collection for new favourites. Only global collections can be default."|t('super-favourite'),
+                id: 'isDefault',
+                name: 'isDefault',
+                value: 1,
+                on: collection.isDefault,
+                errors: collection.getErrors('isDefault'),
+                disabled: collection.userId ? true : false
+            }) }}
+        </div>
+
+        <hr>
+        {{ forms.checkboxSelectField({
+            label: "Allowed Element Types"|t('super-favourite'),
+            instructions: "Select which element types can be added to this collection."|t('super-favourite'),
+            id: 'allowedElementTypes',
+            name: 'allowedElementTypes',
+            options: elementTypeOptions,
+            values: collection.allowedElementTypes|length ? collection.allowedElementTypes|json_decode|raw : '*',
+            showAllOption: true,
+            errors: collection.getErrors('allowedElementTypes')
+        }) }}
     </div>{# end content tab #}
 
     {# Custom Fields Tabs #}

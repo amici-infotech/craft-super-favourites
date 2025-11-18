@@ -13,6 +13,7 @@ use craft\records\User;
  * @property string $handle
  * @property string $description
  * @property bool $isDefault
+ * @property string|null $allowedElementTypes
  * @property int $sortOrder
  */
 class CollectionRecord extends ActiveRecord

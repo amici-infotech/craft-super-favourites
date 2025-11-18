@@ -220,7 +220,16 @@ class FavouriteController extends Controller
             if ($defaultCollection) {
                 $favouriteItem->collectionId = $defaultCollection->id;
             } else {
-                $favouriteItem->addError('collectionId', Craft::t('super-favourite', 'No default collection found. Please select a collection.'));
+                // No default collection found - this is a critical error
+                Craft::$app->getSession()->setError(
+                    Craft::t('super-favourite', 'No default collection found. Please create a default collection first or select a collection.')
+                );
+
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'favouriteItem' => $favouriteItem
+                ]);
+
+                return null;
             }
         }
 

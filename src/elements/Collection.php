@@ -28,6 +28,7 @@ class Collection extends Element
     public $handle;
     public $description;
     public $isDefault = false;
+    public $allowedElementTypes; // JSON array of allowed element types, null = all allowed
     public $sortOrder = 0;
     public ?int $fieldLayoutId = null;
 
@@ -422,11 +423,52 @@ class Collection extends Element
         $record->handle = $this->handle;
         $record->description = $this->description;
         $record->isDefault = (bool)$this->isDefault; // Explicit boolean cast
+
+        // Convert allowedElementTypes to JSON for storage in database
+        if (is_array($this->allowedElementTypes)) {
+            $record->allowedElementTypes = json_encode($this->allowedElementTypes);
+        } elseif ($this->allowedElementTypes === '*' || $this->allowedElementTypes === null) {
+            $record->allowedElementTypes = null; // Store null for "All"
+        } else {
+            $record->allowedElementTypes = $this->allowedElementTypes; // Already a string
+        }
+
         $record->sortOrder = $this->sortOrder;
 
         $record->save(false);
 
         parent::afterSave($isNew);
+
+        // After saving to the record, decode back for the element instance
+        // This ensures the element has the correct value if it's used again in the same request
+        $this->allowedElementTypes = $record->allowedElementTypes;
+        $this->_decodeAllowedElementTypes();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterFind(): void
+    {
+        parent::afterFind();
+        $this->_decodeAllowedElementTypes();
+    }
+
+    /**
+     * Decode allowedElementTypes from database format to form format
+     */
+    private function _decodeAllowedElementTypes(): void
+    {
+        // Decode JSON allowedElementTypes back to array or '*' for display
+        if (is_string($this->allowedElementTypes) && !empty($this->allowedElementTypes)) {
+            $decoded = json_decode($this->allowedElementTypes, true);
+            if ($decoded !== null) {
+                $this->allowedElementTypes = $decoded;
+            }
+        } elseif ($this->allowedElementTypes === null || $this->allowedElementTypes === '') {
+            // null/empty in database = "All" in the form
+            $this->allowedElementTypes = '*';
+        }
     }
 
     /**

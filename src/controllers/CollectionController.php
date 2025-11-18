@@ -73,10 +73,26 @@ class CollectionController extends Controller
             ];
         }
 
+        // Get all available element types for the checkboxes
+        $allElementTypes = Craft::$app->getElements()->getAllElementTypes();
+        $elementTypeOptions = [];
+        foreach ($allElementTypes as $elementType) {
+            // Exclude Collection and FavouriteItem from the options
+            if ($elementType === \amici\SuperFavourite\elements\Collection::class ||
+                $elementType === \amici\SuperFavourite\elements\FavouriteItem::class) {
+                continue;
+            }
+            $elementTypeOptions[] = [
+                'label' => $elementType::pluralDisplayName(),
+                'value' => $elementType,
+            ];
+        }
+
         return $this->renderTemplate('super-favourite/collections/_edit', [
             'collection' => $collection,
             'isNew' => !$collection->id,
             'tabs' => $tabs,
+            'elementTypeOptions' => $elementTypeOptions,
         ]);
     }
 
@@ -126,6 +142,39 @@ class CollectionController extends Controller
             $collection->userId = (int)$userIds[0];
         } else {
             $collection->userId = null;
+        }
+
+        // Get allowed element types from checkboxes
+        // Note: checkboxSelectField sends both 'allowedElementTypes' (empty string)
+        // and 'allowedElementTypes[]' (array of values)
+        $allowedElementTypes = $request->getBodyParam('allowedElementTypes');
+
+        // If it's an empty string or not set, default to "All" (null)
+        if ($allowedElementTypes === '' || $allowedElementTypes === null) {
+            $collection->allowedElementTypes = null;
+        } elseif (is_array($allowedElementTypes)) {
+            // Filter out empty values from the array
+            $allowedElementTypes = array_filter($allowedElementTypes, function($val) {
+                return !empty($val);
+            });
+
+            // Check if "All" is selected (value = '*')
+            if (empty($allowedElementTypes)) {
+                // Empty array after filtering = no selection = All
+                $collection->allowedElementTypes = null;
+            } elseif (in_array('*', $allowedElementTypes)) {
+                // "All" explicitly selected
+                $collection->allowedElementTypes = null;
+            } else {
+                // Specific types selected - re-index array
+                $collection->allowedElementTypes = array_values($allowedElementTypes);
+            }
+        } elseif ($allowedElementTypes === '*') {
+            // Single value '*' means all
+            $collection->allowedElementTypes = null;
+        } else {
+            // Fallback: allow all
+            $collection->allowedElementTypes = null;
         }
 
         // Set custom field values from the 'fields' namespace

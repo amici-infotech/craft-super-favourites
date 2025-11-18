@@ -75,6 +75,7 @@ class CollectionQuery extends ElementQuery
             'super_favourite_collections.handle',
             'super_favourite_collections.description',
             'super_favourite_collections.isDefault',
+            'super_favourite_collections.allowedElementTypes',
             'super_favourite_collections.sortOrder',
         ]);
 

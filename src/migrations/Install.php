@@ -34,6 +34,7 @@ class Install extends Migration
         $this->createTables();
         $this->createIndexes();
         $this->addForeignKeys();
+        $this->createDefaultCollection();
 
         return true;
     }
@@ -43,16 +44,17 @@ class Install extends Migration
         // Collections table - stores global and user-created lists/collections
         // userId is null for global collections, set for user-specific collections
         $this->createTable('{{%super_favourite_collections}}', [
-            'id'          => $this->primaryKey(),
-            'userId'      => $this->integer()->null(), // Null = global collection
-            'name'        => $this->string()->notNull(),
-            'handle'      => $this->string()->notNull(),
-            'description' => $this->text(),
-            'isDefault'   => $this->boolean()->defaultValue(false),
-            'sortOrder'   => $this->integer()->defaultValue(0),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid'         => $this->uid(),
+            'id'                  => $this->primaryKey(),
+            'userId'              => $this->integer()->null(), // Null = global collection
+            'name'                => $this->string()->notNull(),
+            'handle'              => $this->string()->notNull(),
+            'description'         => $this->text(),
+            'isDefault'           => $this->boolean()->defaultValue(false),
+            'allowedElementTypes' => $this->text(), // JSON array of allowed element types
+            'sortOrder'           => $this->integer()->defaultValue(0),
+            'dateCreated'         => $this->dateTime()->notNull(),
+            'dateUpdated'         => $this->dateTime()->notNull(),
+            'uid'                 => $this->uid(),
         ]);
 
         // Favourite items table - stores individual favourites
@@ -195,6 +197,25 @@ class Install extends Migration
             'elementType',
             false
         );
+    }
+
+    /**
+     * Create the default global collection
+     */
+    protected function createDefaultCollection(): void
+    {
+        $collection = new \amici\SuperFavourite\elements\Collection();
+        $collection->name = 'Default';
+        $collection->handle = 'default';
+        $collection->description = 'Default collection for favourites';
+        $collection->isDefault = true;
+        $collection->userId = null; // Global collection
+        $collection->allowedElementTypes = null; // Allow all element types
+        $collection->sortOrder = 0;
+
+        if (!Craft::$app->getElements()->saveElement($collection)) {
+            Craft::warning('Could not create default collection: ' . implode(', ', $collection->getErrors()), __METHOD__);
+        }
     }
 
     public function safeDown()
