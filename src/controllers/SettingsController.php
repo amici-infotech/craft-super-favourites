@@ -88,6 +88,12 @@ class SettingsController extends Controller
         $this->requirePostRequest();
         $this->requirePermission('accessPlugin-super-favourite');
 
+        // Block saving if admin changes aren't allowed
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            Craft::$app->getSession()->setError(Craft::t('super-favourite', 'Changes to these settings aren\'t permitted in this environment.'));
+            return null;
+        }
+
         $request = Craft::$app->getRequest();
         $plugin = Plugin::getInstance();
         $settings = $plugin->getSettings();
@@ -116,6 +122,12 @@ class SettingsController extends Controller
         $this->requirePostRequest();
         $this->requirePermission('accessPlugin-super-favourite');
 
+        // Block saving if admin changes aren't allowed (field layouts are project config)
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            Craft::$app->getSession()->setError(Craft::t('super-favourite', 'Changes to these settings aren\'t permitted in this environment.'));
+            return null;
+        }
+
         $fieldsService = Craft::$app->getFields();
 
         // Assemble the field layout from the posted data
@@ -143,6 +155,12 @@ class SettingsController extends Controller
     {
         $this->requirePostRequest();
         $this->requirePermission('accessPlugin-super-favourite');
+
+        // Block saving if admin changes aren't allowed (field layouts are project config)
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            Craft::$app->getSession()->setError(Craft::t('super-favourite', 'Changes to these settings aren\'t permitted in this environment.'));
+            return null;
+        }
 
         $fieldsService = Craft::$app->getFields();
 

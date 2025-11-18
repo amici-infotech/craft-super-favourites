@@ -5,12 +5,19 @@
 {% import "_includes/forms" as forms %}
 
 {% set title = "Settings"|t('super-favourite') %}
-{% set fullPageForm = true %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set fullPageForm = not readOnly %}
 {% set selectedSettingsTab = 'favourite-fields' %}
 
+{% if readOnly %}
+    {% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
 {% block content %}
-    {{ actionInput('super-favourite/settings/save-favourite-field-layout') }}
-    {{ redirectInput('super-favourite/settings/favourite-fields') }}
+    {% if not readOnly %}
+        {{ actionInput('super-favourite/settings/save-favourite-field-layout') }}
+        {{ redirectInput('super-favourite/settings/favourite-fields') }}
+    {% endif %}
 
     <h2>{{ "Favourite Item Field Layout"|t('super-favourite') }}</h2>
     <p>{{ "Configure the fields that will be available for all favourite items."|t('super-favourite') }}</p>
@@ -18,6 +25,8 @@
     {% namespace 'fieldLayout' %}
         {{ forms.fieldLayoutDesignerField({
             fieldLayout: fieldLayout,
+            withCardViewDesigner: true,
+            disabled: readOnly,
         }) }}
     {% endnamespace %}
 

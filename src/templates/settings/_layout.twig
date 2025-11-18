@@ -17,11 +17,10 @@
     { label: "Plugins"|t('app'), url: url('settings/plugins') },
 ] %}
 
-{# Sidebar navigation items #}
+{# Sidebar navigation items - All settings are project config #}
 {% set sidebar %}
     <nav>
         <ul>
-            <li class="heading"><span>{{ "Settings"|t('super-favourite') }}</span></li>
             <li>
                 <a href="{{ url('super-favourite/settings/general') }}"
                    {% if selectedSettingsTab == 'general' %}class="sel"{% endif %}>
