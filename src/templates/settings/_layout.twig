@@ -4,31 +4,43 @@
 
 {% do view.registerTranslations('super-favourite', [
     'General Settings',
-    'Field Layout',
+    'Collection Fields',
+    'Favourite Item Fields',
 ]) %}
 
 {% set title = title ?? "Settings"|t('super-favourite') %}
-{% set selectedSubnavItem = selectedSubnavItem ?? 'general' %}
+{# Set the main plugin nav item to 'settings' #}
+{% set selectedSubnavItem = 'settings' %}
 
 {% set crumbs = [
     { label: "Settings"|t('app'), url: url('settings') },
     { label: "Plugins"|t('app'), url: url('settings/plugins') },
 ] %}
 
-{% set tabs = {
-    general: {
-        label: "General Settings"|t('super-favourite'),
-        url: url('super-favourite/settings/general')
-    },
-    'collection-fields': {
-        label: "Collection Fields"|t('super-favourite'),
-        url: url('super-favourite/settings/collection-fields')
-    },
-    'favourite-fields': {
-        label: "Favourite Item Fields"|t('super-favourite'),
-        url: url('super-favourite/settings/favourite-fields')
-    }
-} %}
-
-{% set selectedTab = selectedSubnavItem %}
+{# Sidebar navigation items #}
+{% set sidebar %}
+    <nav>
+        <ul>
+            <li class="heading"><span>{{ "Settings"|t('super-favourite') }}</span></li>
+            <li>
+                <a href="{{ url('super-favourite/settings/general') }}"
+                   {% if selectedSettingsTab == 'general' %}class="sel"{% endif %}>
+                    {{ "General Settings"|t('super-favourite') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('super-favourite/settings/collection-fields') }}"
+                   {% if selectedSettingsTab == 'collection-fields' %}class="sel"{% endif %}>
+                    {{ "Collection Fields"|t('super-favourite') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('super-favourite/settings/favourite-fields') }}"
+                   {% if selectedSettingsTab == 'favourite-fields' %}class="sel"{% endif %}>
+                    {{ "Favourite Item Fields"|t('super-favourite') }}
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endset %}
 
