@@ -17,12 +17,18 @@ class CollectionQuery extends ElementQuery
     public $isDefault;
     public $sortOrder;
 
+    private $_userIdSet = false;
+
     /**
      * Filter by user ID
+     *
+     * @param int|null $value User ID to filter by, or null for global collections
+     * @return static
      */
     public function userId($value)
     {
         $this->userId = $value;
+        $this->_userIdSet = true;
         return $this;
     }
 
@@ -67,20 +73,15 @@ class CollectionQuery extends ElementQuery
      */
     protected function beforePrepare(): bool
     {
-        $this->joinElementTable('super_favourite_collections');
-
-        $this->query->select([
-            'super_favourite_collections.userId',
-            'super_favourite_collections.name',
-            'super_favourite_collections.handle',
-            'super_favourite_collections.description',
-            'super_favourite_collections.isDefault',
-            'super_favourite_collections.allowedElementTypes',
-            'super_favourite_collections.sortOrder',
-        ]);
-
-        if ($this->userId) {
-            $this->subQuery->andWhere(Db::parseParam('super_favourite_collections.userId', $this->userId));
+        // Apply filters to subQuery BEFORE parent::beforePrepare() and joinElementTable()
+        // This ensures conditions are added to the subQuery before it's finalized
+        if ($this->_userIdSet) {
+            // Explicitly handle null userId to ensure IS NULL condition is properly generated
+            if ($this->userId === null) {
+                $this->subQuery->andWhere(['super_favourite_collections.userId' => null]);
+            } else {
+                $this->subQuery->andWhere(Db::parseParam('super_favourite_collections.userId', $this->userId));
+            }
         }
 
         if ($this->name) {
@@ -98,6 +99,18 @@ class CollectionQuery extends ElementQuery
         if ($this->sortOrder !== null) {
             $this->subQuery->andWhere(Db::parseParam('super_favourite_collections.sortOrder', $this->sortOrder));
         }
+
+        $this->joinElementTable('super_favourite_collections');
+
+        $this->query->select([
+            'super_favourite_collections.userId',
+            'super_favourite_collections.name',
+            'super_favourite_collections.handle',
+            'super_favourite_collections.description',
+            'super_favourite_collections.isDefault',
+            'super_favourite_collections.allowedElementTypes',
+            'super_favourite_collections.sortOrder',
+        ]);
 
         return parent::beforePrepare();
     }

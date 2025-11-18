@@ -190,6 +190,16 @@ class SuperFavouriteVariable
     }
 
     /**
+     * Returns a favourite item query
+     *
+     * @return \amici\SuperFavourite\elements\db\FavouriteItemQuery
+     */
+    public function favouriteItems()
+    {
+        return FavouriteItem::find();
+    }
+
+    /**
      * Check if current user is logged in
      *
      * @return bool
@@ -208,6 +218,61 @@ class SuperFavouriteVariable
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
         return $currentUser ? $currentUser->id : null;
+    }
+
+    /**
+     * Get all available element types
+     *
+     * Returns an array of element types with their display names
+     * Format: [['value' => 'craft\\elements\\Entry', 'label' => 'Entries'], ...]
+     *
+     * @return array
+     */
+    public function getAvailableElementTypes(): array
+    {
+        $elementTypes = [];
+
+        // Get all registered element types
+        $allTypes = Craft::$app->getElements()->getAllElementTypes();
+
+        // Define excluded element types (internal/system types that shouldn't be favourited)
+        $excludedTypeClasses = [
+            // Craft core internal types
+            \craft\elements\GlobalSet::class,
+            \craft\elements\MatrixBlock::class,
+            // Our plugin types
+            \amici\SuperFavourite\elements\Collection::class,
+            \amici\SuperFavourite\elements\FavouriteItem::class,
+            // Commerce internal types
+            \craft\commerce\elements\Variant::class,
+            \craft\commerce\elements\Donation::class,
+            \craft\commerce\elements\Transfer::class,
+        ];
+
+        // Filter to only classes that exist
+        $excludedTypes = array_filter($excludedTypeClasses, function($class) {
+            return class_exists($class);
+        });
+
+        // Build array using each element type's displayName() method
+        foreach ($allTypes as $elementType) {
+            // Skip excluded types
+            if (in_array($elementType, $excludedTypes)) {
+                continue;
+            }
+
+            $elementTypes[] = [
+                'value' => $elementType,
+                'label' => $elementType::displayName(),
+            ];
+        }
+
+        // Sort by label
+        usort($elementTypes, function($a, $b) {
+            return strcmp($a['label'], $b['label']);
+        });
+
+        return $elementTypes;
     }
 }
 

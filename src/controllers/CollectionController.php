@@ -117,7 +117,7 @@ class CollectionController extends Controller
             }
         } else {
             $collection = new Collection();
-            $collection->userId = Craft::$app->getUser()->getId();
+            // Don't set userId here - will be set from POST data below
         }
 
         // Set site ID for content
@@ -135,12 +135,17 @@ class CollectionController extends Controller
         $collection->description = $request->getBodyParam('description');
         $collection->isDefault = (bool)$request->getBodyParam('isDefault', false);
 
-        // Get userId from element select field
-        // If no user selected, userId stays null = global collection
+        // Get userId from POST
+        // Can be either from element select field (array) or hidden input (string/int)
         $userIds = $request->getBodyParam('userId');
         if (is_array($userIds) && !empty($userIds)) {
+            // From element select field (CP form)
             $collection->userId = (int)$userIds[0];
+        } elseif (!empty($userIds) && $userIds !== '' && $userIds !== null) {
+            // From hidden input (frontend form) - convert to int
+            $collection->userId = (int)$userIds;
         } else {
+            // Empty or not provided = global collection
             $collection->userId = null;
         }
 
@@ -219,10 +224,47 @@ class CollectionController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('super-favourite:manage-collections');
+        $this->requireLogin();
 
         $request = Craft::$app->getRequest();
         $collectionId = $request->getRequiredBodyParam('collectionId');
+
+        // Get the collection to check ownership
+        $collection = Collection::find()->id($collectionId)->one();
+
+        if (!$collection) {
+            if ($request->getAcceptsJson()) {
+                return $this->asJson([
+                    'success' => false,
+                    'error' => Craft::t('super-favourite', 'Collection not found.')
+                ]);
+            }
+
+            Craft::$app->getSession()->setError(Craft::t('super-favourite', 'Collection not found.'));
+            return $this->redirectToPostedUrl();
+        }
+
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        // Check if user can delete:
+        // - Admins can delete anything
+        // - Users can delete their own collections
+        // - Users can delete global collections (userId is null)
+        $canDelete = $currentUser->admin
+                     || $collection->userId === $currentUser->id
+                     || $collection->userId === null;
+
+        if (!$canDelete) {
+            if ($request->getAcceptsJson()) {
+                return $this->asJson([
+                    'success' => false,
+                    'error' => Craft::t('super-favourite', 'You do not have permission to delete this collection.')
+                ]);
+            }
+
+            Craft::$app->getSession()->setError(Craft::t('super-favourite', 'You do not have permission to delete this collection.'));
+            return $this->redirectToPostedUrl();
+        }
 
         $success = Plugin::getInstance()->collection->deleteCollection(
             (int)$collectionId,

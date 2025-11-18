@@ -235,10 +235,10 @@ class Install extends Migration
 
         // Drop foreign keys first
         if ($itemsTableExists) {
-            $this->dropAllForeignKeysToTable('{{%super_favourite_items}}');
+        $this->dropAllForeignKeysToTable('{{%super_favourite_items}}');
         }
         if ($collectionsTableExists) {
-            $this->dropAllForeignKeysToTable('{{%super_favourite_collections}}');
+        $this->dropAllForeignKeysToTable('{{%super_favourite_collections}}');
         }
 
         // Drop tables

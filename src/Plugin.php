@@ -150,22 +150,22 @@ class Plugin extends CraftPlugin
     {
         $parent = parent::getCpNavItem();
         $parent['label'] = $this->getSettings()->pluginName;
-        $parent['url'] = 'super-favourite';
+            $parent['url'] = 'super-favourite';
 
-        $parent['subnav']['collections'] = [
-            'label' => Craft::t('super-favourite', 'Collections'),
-            'url' => 'super-favourite/collections',
-        ];
+            $parent['subnav']['collections'] = [
+                'label' => Craft::t('super-favourite', 'Collections'),
+                'url' => 'super-favourite/collections',
+            ];
 
-        $parent['subnav']['favourites'] = [
-            'label' => Craft::t('super-favourite', 'Favourites'),
-            'url' => 'super-favourite/favourites',
-        ];
+            $parent['subnav']['favourites'] = [
+                'label' => Craft::t('super-favourite', 'Favourites'),
+                'url' => 'super-favourite/favourites',
+            ];
 
-        $parent['subnav']['settings'] = [
-            'label' => Craft::t('super-favourite', 'Settings'),
-            'url' => 'super-favourite/settings',
-        ];
+            $parent['subnav']['settings'] = [
+                'label' => Craft::t('super-favourite', 'Settings'),
+                'url' => 'super-favourite/settings',
+            ];
 
         return $parent;
     }
