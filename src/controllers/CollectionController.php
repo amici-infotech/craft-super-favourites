@@ -10,8 +10,6 @@ use amici\SuperFavourite\elements\Collection;
 
 /**
  * Collection Controller
- *
- * Handles collection management in the CP
  */
 class CollectionController extends Controller
 {
@@ -51,20 +49,15 @@ class CollectionController extends Controller
 
         if ($collection === null) {
             $collection = new Collection();
-            // Default to global collection (no user assigned)
             $collection->userId = null;
         }
 
-        // Prepare tabs for the form
         $tabs = [];
-
-        // Main tab with the basic fields
         $tabs['collection-details'] = [
             'label' => Craft::t('super-favourite', 'Collection Details'),
             'url' => '#collection-details',
         ];
 
-        // Add tabs from the field layout
         $fieldLayout = $collection->getFieldLayout();
         foreach ($fieldLayout->getTabs() as $tab) {
             $tabs[$tab->getHtmlId()] = [
@@ -72,12 +65,9 @@ class CollectionController extends Controller
                 'url' => '#' . $tab->getHtmlId(),
             ];
         }
-
-        // Get all available element types for the checkboxes
         $allElementTypes = Craft::$app->getElements()->getAllElementTypes();
         $elementTypeOptions = [];
         foreach ($allElementTypes as $elementType) {
-            // Exclude Collection and FavouriteItem from the options
             if ($elementType === \amici\SuperFavourite\elements\Collection::class ||
                 $elementType === \amici\SuperFavourite\elements\FavouriteItem::class) {
                 continue;

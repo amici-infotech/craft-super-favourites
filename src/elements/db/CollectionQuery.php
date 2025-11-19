@@ -73,14 +73,11 @@ class CollectionQuery extends ElementQuery
      */
     protected function beforePrepare(): bool
     {
-        // Apply filters to subQuery BEFORE parent::beforePrepare() and joinElementTable()
-        // This ensures conditions are added to the subQuery before it's finalized
         if ($this->_userIdSet) {
-            // Explicitly handle null userId to ensure IS NULL condition is properly generated
             if ($this->userId === null) {
                 $this->subQuery->andWhere(['super_favourite_collections.userId' => null]);
             } else {
-                $this->subQuery->andWhere(Db::parseParam('super_favourite_collections.userId', $this->userId));
+            $this->subQuery->andWhere(Db::parseParam('super_favourite_collections.userId', $this->userId));
             }
         }
 

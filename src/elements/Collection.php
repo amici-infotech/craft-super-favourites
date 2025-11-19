@@ -22,13 +22,12 @@ use amici\SuperFavourite\Plugin;
  */
 class Collection extends Element
 {
-    // Properties
     public $userId;
     public $name;
     public $handle;
     public $description;
     public $isDefault = false;
-    public $allowedElementTypes; // JSON array of allowed element types, null = all allowed
+    public $allowedElementTypes;
     public $sortOrder = 0;
     public ?int $fieldLayoutId = null;
 
@@ -190,7 +189,6 @@ class Collection extends Element
      */
     protected static function defineSources(string $context = null): array
     {
-        // Return only the default "All" source to prevent sidebar from showing additional sources
         return [
             [
                 'key' => '*',
@@ -271,8 +269,6 @@ class Collection extends Element
                 return $user ? Cp::elementChipHtml($user) : Craft::t('super-favourite', 'Global');
 
             case 'isDefault':
-                // Cast to boolean to ensure proper comparison
-                // Database might return '0' or '1' as strings
                 if ((bool)$this->isDefault) {
                     return '<span class="checkbox-icon" title="' . Craft::t('super-favourite', 'Default') . '" role="img" aria-label="' . Craft::t('super-favourite', 'Default') . '"></span>';
                 }
@@ -370,16 +366,12 @@ class Collection extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-        // Auto-generate handle from name if not set
         if (empty($this->handle) && !empty($this->name)) {
             $this->handle = $this->generateHandle($this->name);
         }
 
-        // Set title to name
         $this->title = $this->name;
 
-        // User collections cannot be default collections
-        // Only global collections (userId = null) can be default
         if ($this->userId !== null && $this->isDefault) {
             $this->isDefault = false;
         }

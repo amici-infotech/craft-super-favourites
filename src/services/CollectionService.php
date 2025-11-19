@@ -3,6 +3,7 @@ namespace amici\SuperFavourite\services;
 
 use Craft;
 use craft\base\Component;
+use craft\events\ModelEvent;
 
 use amici\SuperFavourite\elements\Collection;
 use amici\SuperFavourite\elements\FavouriteItem;
@@ -10,19 +11,48 @@ use amici\SuperFavourite\elements\FavouriteItem;
 /**
  * Collection Service
  *
- * Handles all collection-related operations
+ * Manages collection-related operations including creation, deletion, and retrieval.
+ * Collections are containers that organize favourite items by user or globally.
+ * Provides event hooks for extensibility.
  */
 class CollectionService extends Component
 {
     /**
+     * Event fired before a collection is created
+     * Use this to validate, modify, or cancel creation by setting $event->isValid = false
+     */
+    const EVENT_BEFORE_CREATE_COLLECTION = 'beforeCreateCollection';
+
+    /**
+     * Event fired after a collection has been successfully created
+     * Use this for initialization, notifications, or related operations
+     */
+    const EVENT_AFTER_CREATE_COLLECTION = 'afterCreateCollection';
+
+    /**
+     * Event fired before a collection is deleted
+     * Use this to validate or cancel deletion by setting $event->isValid = false
+     */
+    const EVENT_BEFORE_DELETE_COLLECTION = 'beforeDeleteCollection';
+
+    /**
+     * Event fired after a collection has been successfully deleted
+     * Use this for cleanup, notifications, or cascading operations
+     */
+    const EVENT_AFTER_DELETE_COLLECTION = 'afterDeleteCollection';
+    /**
      * Create a new collection for a user
      *
-     * @param int $userId The user ID
-     * @param string $name The collection name
-     * @param string|null $handle The collection handle (auto-generated if null)
-     * @param string|null $description The collection description
-     * @param bool $isDefault Whether this is the default collection
-     * @return Collection|false
+     * Creates a new collection element with the specified properties. Collections can be
+     * user-specific or global (when userId is null). The handle is auto-generated if not provided.
+     * Triggers BEFORE and AFTER events for extensibility.
+     *
+     * @param int $userId The user ID (null for global collections)
+     * @param string $name The collection name (required)
+     * @param string|null $handle URL-friendly handle (auto-generated from name if null)
+     * @param string|null $description Optional description text
+     * @param bool $isDefault Whether this should be the default collection for the user
+     * @return Collection|false The created collection, or false on failure
      */
     public function createCollection(
         int $userId,
@@ -31,6 +61,7 @@ class CollectionService extends Component
         ?string $description = null,
         bool $isDefault = false
     ) {
+        // Create new collection element
         $collection = new Collection();
         $collection->userId = $userId;
         $collection->name = $name;
@@ -38,11 +69,26 @@ class CollectionService extends Component
         $collection->description = $description;
         $collection->isDefault = $isDefault;
 
-        if (Craft::$app->getElements()->saveElement($collection)) {
-            return $collection;
+        // Trigger before event - allows validation or modification
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_CREATE_COLLECTION)) {
+            $event = new ModelEvent(['sender' => $collection]);
+            $this->trigger(self::EVENT_BEFORE_CREATE_COLLECTION, $event);
+            if (!$event->isValid) {
+                return false;
+            }
         }
 
-        return false;
+        // Save the collection element
+        if (!Craft::$app->getElements()->saveElement($collection)) {
+            return false;
+        }
+
+        // Trigger after event - useful for initialization or notifications
+        if ($this->hasEventHandlers(self::EVENT_AFTER_CREATE_COLLECTION)) {
+            $this->trigger(self::EVENT_AFTER_CREATE_COLLECTION, new ModelEvent(['sender' => $collection]));
+        }
+
+        return $collection;
     }
 
     /**
@@ -76,19 +122,33 @@ class CollectionService extends Component
     /**
      * Delete a collection and optionally its items
      *
-     * @param int $collectionId The collection ID
-     * @param bool $deleteItems Whether to delete items in the collection
-     * @return bool
+     * Removes a collection from the system. Can optionally delete all favourite items
+     * within the collection as a cascading operation. Triggers BEFORE and AFTER events.
+     * The BEFORE event can prevent deletion by setting $event->isValid = false.
+     *
+     * @param int $collectionId The ID of the collection to delete
+     * @param bool $deleteItems If true, also deletes all favourite items in this collection
+     * @return bool True if deletion was successful, false otherwise
      */
     public function deleteCollection(int $collectionId, bool $deleteItems = false): bool
     {
+        // Find the collection to delete
         $collection = Collection::find()->id($collectionId)->one();
 
         if (!$collection) {
             return false;
         }
 
-        // Optionally delete all items in the collection
+        // Trigger before event - allows cancellation (e.g., prevent deletion of default collections)
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_COLLECTION)) {
+            $event = new ModelEvent(['sender' => $collection]);
+            $this->trigger(self::EVENT_BEFORE_DELETE_COLLECTION, $event);
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
+        // Optionally delete all items in the collection (cascading delete)
         if ($deleteItems) {
             $items = FavouriteItem::find()
                 ->collectionId($collectionId)
@@ -99,18 +159,35 @@ class CollectionService extends Component
             }
         }
 
-        return Craft::$app->getElements()->deleteElement($collection);
+        // Delete the collection element
+        if (!Craft::$app->getElements()->deleteElement($collection)) {
+            return false;
+        }
+
+        // Trigger after event - useful for cleanup or notifications
+        if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_COLLECTION)) {
+            $this->trigger(self::EVENT_AFTER_DELETE_COLLECTION, new ModelEvent(['sender' => $collection]));
+        }
+
+        return true;
     }
 
     /**
      * Get all collections for a user (global + user-specific)
      *
-     * @param int|null $userId The user ID (defaults to current user)
-     * @return array
+     * Returns collections accessible by the specified user, including both:
+     * - Global collections (userId = null) that are available to all users
+     * - User-specific collections (userId = specified user)
+     *
+     * Results are ordered with global collections first, then user collections,
+     * and within each group by sortOrder.
+     *
+     * @param int|null $userId The user ID (defaults to current logged-in user)
+     * @return array Array of Collection elements
      */
     public function getUserCollections(?int $userId = null): array
     {
-        // Get current user if not specified
+        // Use current logged-in user if no user ID provided
         if ($userId === null) {
             $currentUser = Craft::$app->getUser()->getIdentity();
             if (!$currentUser) {
@@ -119,12 +196,13 @@ class CollectionService extends Component
             $userId = $currentUser->id;
         }
 
-        // Get global collections (userId is null) + user-specific collections
+        // Query for both global and user-specific collections
+        // Global collections (userId IS NULL) are shown first, then user collections
         return Collection::find()
             ->where([
                 'or',
-                ['super_favourite_collections.userId' => null],
-                ['super_favourite_collections.userId' => $userId]
+                ['super_favourite_collections.userId' => null],  // Global collections
+                ['super_favourite_collections.userId' => $userId] // User's collections
             ])
             ->orderBy('CASE WHEN super_favourite_collections.userId IS NULL THEN 0 ELSE 1 END, super_favourite_collections.sortOrder ASC')
             ->all();
@@ -132,14 +210,9 @@ class CollectionService extends Component
 
     /**
      * Get a collection by handle for a user
-     *
-     * @param string $handle The collection handle
-     * @param int|null $userId The user ID (defaults to current user)
-     * @return Collection|null
      */
     public function getCollectionByHandle(string $handle, ?int $userId = null)
     {
-        // Get current user if not specified
         if ($userId === null) {
             $currentUser = Craft::$app->getUser()->getIdentity();
             if (!$currentUser) {
@@ -156,13 +229,9 @@ class CollectionService extends Component
 
     /**
      * Get the default collection for a user
-     *
-     * @param int|null $userId The user ID (defaults to current user)
-     * @return Collection|null
      */
     public function getDefaultCollection(?int $userId = null)
     {
-        // Get current user if not specified
         if ($userId === null) {
             $currentUser = Craft::$app->getUser()->getIdentity();
             if (!$currentUser) {
@@ -179,9 +248,6 @@ class CollectionService extends Component
 
     /**
      * Set a collection as default for a user
-     *
-     * @param int $collectionId The collection ID
-     * @return bool
      */
     public function setDefaultCollection(int $collectionId): bool
     {
@@ -191,7 +257,6 @@ class CollectionService extends Component
             return false;
         }
 
-        // Unset any other default collections for this user
         $otherDefaults = Collection::find()
             ->userId($collection->userId)
             ->isDefault(true)
@@ -203,20 +268,15 @@ class CollectionService extends Component
             Craft::$app->getElements()->saveElement($other);
         }
 
-        // Set this as default
         $collection->isDefault = true;
         return Craft::$app->getElements()->saveElement($collection);
     }
 
     /**
      * Get collection count for a user
-     *
-     * @param int|null $userId The user ID (defaults to current user)
-     * @return int
      */
     public function getCollectionCount(?int $userId = null): int
     {
-        // Get current user if not specified
         if ($userId === null) {
             $currentUser = Craft::$app->getUser()->getIdentity();
             if (!$currentUser) {

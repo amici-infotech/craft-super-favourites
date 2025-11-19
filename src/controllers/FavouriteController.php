@@ -9,15 +9,13 @@ use amici\SuperFavourite\Plugin;
 
 /**
  * Favourite Controller
- *
- * Handles favourite/unfavourite actions
  */
 class FavouriteController extends Controller
 {
     /**
      * @inheritdoc
      */
-    protected array|bool|int $allowAnonymous = ['get-elements'];
+    protected array|bool|int $allowAnonymous = ['get-elements', 'get-allowed-types'];
 
     /**
      * Favourites index page (element index)
@@ -79,48 +77,101 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Get elements for a given element type (AJAX endpoint for frontend forms)
+     * Get allowed element types for a collection (AJAX endpoint)
      *
      * @return Response
      */
-    public function actionGetElements(): Response
+    public function actionGetAllowedTypes(): Response
     {
-        // Allow anonymous access for frontend forms
         $request = Craft::$app->getRequest();
-        $elementType = $request->getParam('elementType');
+        $collectionId = $request->getParam('collectionId');
 
-        // Validate element type
-        if (!$elementType || !class_exists($elementType)) {
+        if (!$collectionId) {
             return $this->asJson([
                 'success' => false,
-                'error' => Craft::t('super-favourite', 'Invalid element type.')
+                'error' => Craft::t('super-favourite', 'Collection ID is required.')
+            ]);
+        }
+
+        // Get the collection
+        $collection = \amici\SuperFavourite\elements\Collection::find()
+            ->id($collectionId)
+            ->one();
+
+        if (!$collection) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('super-favourite', 'Collection not found.')
+            ]);
+        }
+
+        $allowedTypes = $collection->allowedElementTypes;
+
+        $variable = new \amici\SuperFavourite\variables\SuperFavouriteVariable();
+        $availableTypesArray = $variable->getAvailableElementTypes();
+
+        $availableTypes = [];
+        foreach ($availableTypesArray as $type) {
+            $availableTypes[$type['value']] = $type['label'];
+        }
+
+        if ($allowedTypes === '*' || $allowedTypes === null || $allowedTypes === '' ||
+            (is_array($allowedTypes) && (empty($allowedTypes) || in_array('*', $allowedTypes)))) {
+            $allowedTypes = array_keys($availableTypes);
+        } elseif (is_string($allowedTypes)) {
+            $decoded = json_decode($allowedTypes, true);
+            $allowedTypes = is_array($decoded) ? $decoded : [$allowedTypes];
+        } elseif (!is_array($allowedTypes)) {
+            $allowedTypes = array_keys($availableTypes);
+        }
+
+        $typesData = [];
+        foreach ($allowedTypes as $typeClass) {
+            if (isset($availableTypes[$typeClass])) {
+                $typesData[] = [
+                    'value' => $typeClass,
+                    'label' => $availableTypes[$typeClass]
+                ];
+            }
+        }
+
+        return $this->asJson([
+            'success' => true,
+            'types' => $typesData
+        ]);
+    }
+
+    /**
+     * Get elements for a given element type (AJAX endpoint for frontend forms)
+     */
+    public function actionGetElements(): Response
+    {
+        $request = Craft::$app->getRequest();
+        $elementType = $request->getParam('elementType');
+        $collectionId = $request->getParam('collectionId');
+        $limit = $request->getParam('limit', 10);
+
+        if (!$elementType || !$collectionId) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('super-favourite', 'Element type and collection ID are required.')
             ]);
         }
 
         try {
-            // Query elements of the specified type
-            $query = $elementType::find()
-                ->limit(100)
-                ->orderBy(['title' => SORT_ASC]);
+            $currentUser = Craft::$app->getUser()->getIdentity();
+            $userId = $currentUser ? $currentUser->id : null;
 
-            // Add status filter for elements that support it
-            if (method_exists($query, 'status')) {
-                $query->status(['enabled', 'live']);
-            }
-
-            $elements = $query->all();
-
-            $elementData = [];
-            foreach ($elements as $element) {
-                $elementData[] = [
-                    'id' => $element->id,
-                    'title' => (string)$element,
-                ];
-            }
+            $elements = Plugin::getInstance()->favouriteService->getElementsWithFavouriteStatus(
+                $elementType,
+                $collectionId,
+                $userId,
+                $limit
+            );
 
             return $this->asJson([
                 'success' => true,
-                'elements' => $elementData
+                'elements' => $elements
             ]);
         } catch (\Exception $e) {
             return $this->asJson([
@@ -166,25 +217,19 @@ class FavouriteController extends Controller
             $elementTypes[$elementType] = $elementType::displayName();
         }
 
-        // Get available collections
         $collections = \amici\SuperFavourite\elements\Collection::find()->all();
 
-        // Get the favourited element if it exists
         $favouritedElement = null;
         if ($favouriteItem->elementId && $favouriteItem->elementType) {
             $favouritedElement = $elementsService->getElementById($favouriteItem->elementId, $favouriteItem->elementType);
         }
 
-        // Get element type label for dynamic display
         $elementTypeLabel = null;
         if ($favouriteItem->elementType && class_exists($favouriteItem->elementType)) {
             $elementTypeLabel = $favouriteItem->elementType::displayName();
         }
 
-        // Prepare tabs for the form
         $tabs = [];
-
-        // Main tab with the basic fields
         $tabs['favourite-details'] = [
             'label' => Craft::t('super-favourite', 'Favourite Item Details'),
             'url' => '#favourite-details',
@@ -579,8 +624,6 @@ class FavouriteController extends Controller
 
     /**
      * Toggle favourite status
-     *
-     * @return Response
      */
     public function actionToggle(): Response
     {
@@ -591,7 +634,7 @@ class FavouriteController extends Controller
 
         $elementId = $request->getRequiredBodyParam('elementId');
         $elementType = $request->getRequiredBodyParam('elementType');
-        $collectionId = $request->getBodyParam('collectionId');
+        $collectionId = $request->getRequiredBodyParam('collectionId');
 
         $currentUser = Craft::$app->getUser()->getIdentity();
 
@@ -602,43 +645,14 @@ class FavouriteController extends Controller
             ]);
         }
 
-        $isFavourited = Plugin::getInstance()->favourite->isFavourited(
+        $result = Plugin::getInstance()->favouriteService->toggleFavourite(
             (int)$elementId,
-            $currentUser->id,
-            $collectionId ? (int)$collectionId : null
+            $elementType,
+            (int)$collectionId,
+            $currentUser->id
         );
 
-        if ($isFavourited) {
-            // Remove it
-            $success = Plugin::getInstance()->favourite->removeFavourite(
-                (int)$elementId,
-                $currentUser->id,
-                $collectionId ? (int)$collectionId : null
-            );
-
-            return $this->asJson([
-                'success' => $success,
-                'action' => 'removed',
-                'isFavourited' => false,
-                'message' => Craft::t('super-favourite', 'Item removed from favourites.')
-            ]);
-        } else {
-            // Add it
-            $favourite = Plugin::getInstance()->favourite->addFavourite(
-                (int)$elementId,
-                $elementType,
-                $currentUser->id,
-                $collectionId ? (int)$collectionId : null
-            );
-
-            return $this->asJson([
-                'success' => $favourite !== false,
-                'action' => 'added',
-                'isFavourited' => true,
-                'favouriteId' => $favourite ? $favourite->id : null,
-                'message' => Craft::t('super-favourite', 'Item added to favourites.')
-            ]);
-        }
+        return $this->asJson($result);
     }
 
     /**

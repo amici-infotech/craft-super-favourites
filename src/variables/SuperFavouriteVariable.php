@@ -200,27 +200,6 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Check if current user is logged in
-     *
-     * @return bool
-     */
-    public function isLoggedIn(): bool
-    {
-        return !Craft::$app->getUser()->getIsGuest();
-    }
-
-    /**
-     * Get the current user ID
-     *
-     * @return int|null
-     */
-    public function getCurrentUserId(): ?int
-    {
-        $currentUser = Craft::$app->getUser()->getIdentity();
-        return $currentUser ? $currentUser->id : null;
-    }
-
-    /**
      * Get all available element types
      *
      * Returns an array of element types with their display names
@@ -239,7 +218,9 @@ class SuperFavouriteVariable
         $excludedTypeClasses = [
             // Craft core internal types
             \craft\elements\GlobalSet::class,
-            \craft\elements\MatrixBlock::class,
+            \craft\elements\ContentBlock::class,
+            \craft\elements\ElementCollection::class,
+            \craft\elements\NestedElementManager::class,
             // Our plugin types
             \amici\SuperFavourite\elements\Collection::class,
             \amici\SuperFavourite\elements\FavouriteItem::class,
@@ -273,6 +254,34 @@ class SuperFavouriteVariable
         });
 
         return $elementTypes;
+    }
+
+    /**
+     * Create an element query for a given element type
+     * Returns the element query (::find()) so it can be enhanced from the template
+     *
+     * @param string $elementType The element type class name
+     * @return \craft\elements\db\ElementQuery|null
+     */
+    public function createElementQuery(string $elementType)
+    {
+        // Validate the element type exists
+        if (!class_exists($elementType)) {
+            return null;
+        }
+
+        // Check if it's a valid element class
+        if (!is_subclass_of($elementType, \craft\base\ElementInterface::class)) {
+            return null;
+        }
+
+        try {
+            // Call the static find() method on the element type
+            return $elementType::find();
+        } catch (\Exception $e) {
+            Craft::error('Failed to create element query for type: ' . $elementType . ' - ' . $e->getMessage(), __METHOD__);
+            return null;
+        }
     }
 }
 

@@ -21,7 +21,6 @@ class m251118_152412_fix_collection_handle_constraint extends Migration
     {
         $table = '{{%super_favourite_collections}}';
 
-        // Try to drop the old unique constraint on handle
         // We need to find the actual index name first
         try {
             // Get all indexes for this table
