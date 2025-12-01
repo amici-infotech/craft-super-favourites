@@ -7,6 +7,7 @@ use yii\web\Response;
 
 use amici\SuperFavourite\Plugin;
 use amici\SuperFavourite\elements\Collection;
+use amici\SuperFavourite\elements\FavouriteItem;
 
 /**
  * Collection Controller
@@ -68,8 +69,8 @@ class CollectionController extends Controller
         $allElementTypes = Craft::$app->getElements()->getAllElementTypes();
         $elementTypeOptions = [];
         foreach ($allElementTypes as $elementType) {
-            if ($elementType === \amici\SuperFavourite\elements\Collection::class ||
-                $elementType === \amici\SuperFavourite\elements\FavouriteItem::class) {
+            if ($elementType === Collection::class ||
+                $elementType === FavouriteItem::class) {
                 continue;
             }
             $elementTypeOptions[] = [
@@ -121,7 +122,13 @@ class CollectionController extends Controller
 
         // Set attributes
         $collection->name = $request->getBodyParam('name');
-        $collection->handle = $request->getBodyParam('handle');
+
+        // Only set handle if it's not empty (allow auto-generation in beforeSave)
+        $handle = $request->getBodyParam('handle');
+        if (!empty($handle)) {
+            $collection->handle = $handle;
+        }
+
         $collection->description = $request->getBodyParam('description');
         $collection->isDefault = (bool)$request->getBodyParam('isDefault', false);
 

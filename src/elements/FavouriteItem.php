@@ -4,7 +4,10 @@ namespace amici\SuperFavourite\elements;
 use Craft;
 use craft\base\Element;
 use craft\elements\actions\Delete;
+use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
+use craft\elements\actions\SetStatus;
+use craft\elements\actions\View;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\Cp;
@@ -142,6 +145,14 @@ class FavouriteItem extends Element
     /**
      * @inheritdoc
      */
+    public static function createCondition(): \craft\elements\conditions\ElementConditionInterface
+    {
+        return Craft::createObject(\amici\SuperFavourite\conditions\FavouriteItemCondition::class, [static::class]);
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected static function defineSortOptions(): array
     {
         return [
@@ -201,6 +212,7 @@ class FavouriteItem extends Element
         return $sources;
     }
 
+
     /**
      * @inheritdoc
      */
@@ -208,7 +220,25 @@ class FavouriteItem extends Element
     {
         $actions = [];
 
+        // Set Status dropdown
+        $actions[] = SetStatus::class;
+
+        // View action
+        $actions[] = [
+            'type' => View::class,
+            'label' => Craft::t('super-favourite', 'View Favourite'),
+        ];
+
+        // Edit action with custom label
+        $actions[] = [
+            'type' => Edit::class,
+            'label' => Craft::t('super-favourite', 'Edit Favourite'),
+        ];
+
+        // Delete action
         $actions[] = Delete::class;
+
+        // Restore action (for trashed elements)
         $actions[] = Restore::class;
 
         return $actions;
@@ -260,6 +290,18 @@ class FavouriteItem extends Element
      */
     protected function cpEditUrl(): ?string
     {
+        return $this->getCpEditUrl();
+    }
+
+    /**
+     * Get the URL for viewing this favourite item
+     *
+     * @return string|null
+     */
+    public function getUrl(): ?string
+    {
+        // Return the CP edit URL for now
+        // You can customize this to point to a frontend view if you have one
         return $this->getCpEditUrl();
     }
 
@@ -423,7 +465,41 @@ class FavouriteItem extends Element
         $rules[] = [['notes'], 'string'];
         $rules[] = [['sortOrder'], 'integer'];
 
+        // Custom validator for max favourites per collection
+        $rules[] = ['collectionId', 'validateMaxFavouritesPerCollection'];
+
         return $rules;
+    }
+
+    /**
+     * Validate that the collection hasn't exceeded the maximum number of favourites
+     */
+    public function validateMaxFavouritesPerCollection(): void
+    {
+        // Only validate for new favourites (id is null for new elements)
+        if ($this->id !== null) {
+            return;
+        }
+
+        $settings = Plugin::getInstance()->getSettings();
+        $maxFavourites = $settings->maxFavouritesPerCollection;
+
+        // 0 means unlimited
+        if ($maxFavourites === 0) {
+            return;
+        }
+
+        // Count existing favourites in this collection
+        $existingCount = FavouriteItem::find()
+            ->collectionId($this->collectionId)
+            ->count();
+
+        if ($existingCount >= $maxFavourites) {
+            $this->addError('collectionId', Craft::t('super-favourite',
+                'Maximum number of favourites ({max}) reached for this collection. Please remove some favourites before adding new ones.',
+                ['max' => $maxFavourites]
+            ));
+        }
     }
 }
 

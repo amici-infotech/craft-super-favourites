@@ -3,6 +3,7 @@ namespace amici\SuperFavourite\migrations;
 
 use Craft;
 use craft\db\Migration;
+use amici\SuperFavourite\elements\Collection;
 
 /**
  * Install migration for Super Favourite plugin
@@ -204,7 +205,7 @@ class Install extends Migration
      */
     protected function createDefaultCollection(): void
     {
-        $collection = new \amici\SuperFavourite\elements\Collection();
+        $collection = new Collection();
         $collection->name = 'Default';
         $collection->handle = 'default';
         $collection->description = 'Default collection for favourites';

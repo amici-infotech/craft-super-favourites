@@ -63,6 +63,60 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
+     * Filter by the user who owns the favourites (the author)
+     * This is an alias for userId() that's more intuitive to use
+     *
+     * @param mixed $value User element(s), user ID(s), or null
+     * @return static
+     */
+    public function author($value)
+    {
+        if ($value instanceof \craft\elements\User) {
+            $this->userId = $value->id;
+        } elseif (is_array($value)) {
+            $userIds = [];
+            foreach ($value as $user) {
+                if ($user instanceof \craft\elements\User) {
+                    $userIds[] = $user->id;
+                } elseif (is_numeric($user)) {
+                    $userIds[] = (int)$user;
+                }
+            }
+            $this->userId = $userIds;
+        } else {
+            $this->userId = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Filter by the favourited element (what was favourited)
+     * This allows passing element instances instead of just IDs
+     *
+     * @param mixed $value Element(s), element ID(s), or null
+     * @return static
+     */
+    public function favouritedElement($value)
+    {
+        if ($value instanceof \craft\base\ElementInterface) {
+            $this->elementId = $value->id;
+        } elseif (is_array($value)) {
+            $elementIds = [];
+            foreach ($value as $element) {
+                if ($element instanceof \craft\base\ElementInterface) {
+                    $elementIds[] = $element->id;
+                } elseif (is_numeric($element)) {
+                    $elementIds[] = (int)$element;
+                }
+            }
+            $this->elementId = $elementIds;
+        } else {
+            $this->elementId = $value;
+        }
+        return $this;
+    }
+
+    /**
      * @inheritdoc
      */
     protected function beforePrepare(): bool
@@ -78,11 +132,11 @@ class FavouriteItemQuery extends ElementQuery
             'super_favourite_items.notes',
         ]);
 
-        if ($this->userId) {
+        if ($this->userId !== null) {
             $this->subQuery->andWhere(Db::parseParam('super_favourite_items.userId', $this->userId));
         }
 
-        if ($this->collectionId) {
+        if ($this->collectionId !== null) {
             $this->subQuery->andWhere(Db::parseParam('super_favourite_items.collectionId', $this->collectionId));
         }
 

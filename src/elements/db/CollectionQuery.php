@@ -77,7 +77,7 @@ class CollectionQuery extends ElementQuery
             if ($this->userId === null) {
                 $this->subQuery->andWhere(['super_favourite_collections.userId' => null]);
             } else {
-            $this->subQuery->andWhere(Db::parseParam('super_favourite_collections.userId', $this->userId));
+                $this->subQuery->andWhere(Db::parseParam('super_favourite_collections.userId', $this->userId));
             }
         }
 

@@ -4,7 +4,10 @@ namespace amici\SuperFavourite\elements;
 use Craft;
 use craft\base\Element;
 use craft\elements\actions\Delete;
+use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
+use craft\elements\actions\SetStatus;
+use craft\elements\actions\View;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\Cp;
@@ -151,6 +154,14 @@ class Collection extends Element
     /**
      * @inheritdoc
      */
+    public static function createCondition(): \craft\elements\conditions\ElementConditionInterface
+    {
+        return Craft::createObject(\amici\SuperFavourite\conditions\CollectionCondition::class, [static::class]);
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected static function defineSortOptions(): array
     {
         return [
@@ -205,7 +216,28 @@ class Collection extends Element
     {
         $actions = [];
 
+        // Set Status dropdown
+        $actions[] = SetStatus::class;
+
+        // View action
+        $actions[] = [
+            'type' => View::class,
+            'label' => Craft::t('super-favourite', 'View Collection'),
+        ];
+
+        // Edit action with custom label
+        $actions[] = [
+            'type' => Edit::class,
+            'label' => Craft::t('super-favourite', 'Edit Collection'),
+        ];
+
+        // Custom duplicate action that handles our Collection properly
+        // $actions[] = DuplicateCollection::class;
+
+        // Delete action
         $actions[] = Delete::class;
+
+        // Restore action (for trashed elements)
         $actions[] = Restore::class;
 
         return $actions;
@@ -255,6 +287,18 @@ class Collection extends Element
      */
     protected function cpEditUrl(): ?string
     {
+        return $this->getCpEditUrl();
+    }
+
+    /**
+     * Get the URL for viewing this collection
+     *
+     * @return string|null
+     */
+    public function getUrl(): ?string
+    {
+        // Return the CP edit URL for now
+        // You can customize this to point to a frontend view if you have one
         return $this->getCpEditUrl();
     }
 
@@ -314,6 +358,48 @@ class Collection extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function beforeDelete(): bool
+    {
+        if (!parent::beforeDelete()) {
+            return false;
+        }
+
+        // Prevent deleting default collections
+        if ($this->isDefault) {
+            $this->addError('isDefault', Craft::t('super-favourite',
+                'Cannot delete the default collection.'
+            ));
+            return false;
+        }
+
+        // Prevent deleting collections that have enabled favourite items
+        $enabledItemsCount = FavouriteItem::find()
+            ->collectionId($this->id)
+            ->status(\craft\elements\Element::STATUS_ENABLED)
+            ->count();
+
+        if ($enabledItemsCount > 0) {
+            $this->addError('id', Craft::t('super-favourite',
+                'Cannot delete collection with {count} enabled favourite item(s). Please remove or disable the favourites first.',
+                ['count' => $enabledItemsCount]
+            ));
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canDuplicate(User $user): bool
+    {
+        return $user->can('super-favourite:manage-collections');
+    }
+
+    /**
      * Get the user who owns this collection
      */
     public function getUser()
@@ -366,19 +452,25 @@ class Collection extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
+        // Generate handle if empty
         if (empty($this->handle) && !empty($this->name)) {
-            $this->handle = $this->generateHandle($this->name);
+            $this->handle = $this->generateUniqueHandle($this->name);
+        } elseif ($this->handle && $this->handleExists($this->handle)) {
+            // If handle was provided but already exists, make it unique
+            $this->handle = $this->generateUniqueHandle($this->handle);
         }
 
         $this->title = $this->name;
 
-        if ($this->userId !== null && $this->isDefault) {
-            $this->isDefault = false;
+        // Default collections must be global (userId = null)
+        // If isDefault is true, clear userId
+        if ($this->isDefault) {
+            $this->userId = null;
         }
 
         // If this collection is being set as default, unset any other default collections
         // Only one global collection can be default at a time
-        if ($this->isDefault && $this->userId === null) {
+        if ($this->isDefault) {
             // Find any other default collections and unset them
             $existingDefault = Collection::find()
                 ->isDefault(true)
@@ -464,16 +556,24 @@ class Collection extends Element
     }
 
     /**
-     * Generate a unique handle from a name
+     * Generate a unique handle from a name (similar to how Craft generates unique slugs)
+     * Automatically adds -1, -2, etc. if the handle already exists
      */
-    private function generateHandle(string $name): string
+    private function generateUniqueHandle(string $name): string
     {
+        // Generate base handle from name
         $handle = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', $name));
+
+        if (empty($handle)) {
+            $handle = 'collection';
+        }
+
         $baseHandle = $handle;
         $i = 1;
+        $maxAttempts = 100; // Prevent infinite loop
 
-        // Ensure uniqueness for this user
-        while ($this->handleExists($handle)) {
+        // Keep trying until we find a unique handle (like Craft does with slugs)
+        while ($this->handleExists($handle) && $i <= $maxAttempts) {
             $handle = $baseHandle . $i;
             $i++;
         }
@@ -487,10 +587,10 @@ class Collection extends Element
     private function handleExists(string $handle): bool
     {
         $query = Collection::find()
-            ->userId($this->userId)
             ->handle($handle);
 
-        if (!$this->getIsNew()) {
+        // Exclude current collection if it has an ID (not new)
+        if ($this->id) {
             $query->id('not ' . $this->id);
         }
 
@@ -510,7 +610,48 @@ class Collection extends Element
         $rules[] = [['isDefault'], 'boolean'];
         $rules[] = [['sortOrder'], 'integer'];
 
+        // Custom validators
+        $rules[] = ['userId', 'validateMaxCollectionsPerUser', 'on' => [Element::SCENARIO_LIVE, Element::SCENARIO_ESSENTIALS]];
+        // Note: handle uniqueness is enforced in beforeSave() automatically (like Craft does with slugs)
+
         return $rules;
+    }
+
+
+    /**
+     * Validate that the user hasn't exceeded the maximum number of collections
+     */
+    public function validateMaxCollectionsPerUser(): void
+    {
+        // Only validate for user collections (not global)
+        if ($this->userId === null) {
+            return;
+        }
+
+        // Only validate for new collections (id is null for new elements)
+        if ($this->id !== null) {
+            return;
+        }
+
+        $settings = Plugin::getInstance()->getSettings();
+        $maxCollections = $settings->maxCollectionsPerUser;
+
+        // 0 means unlimited
+        if ($maxCollections === 0) {
+            return;
+        }
+
+        // Count existing collections for this user
+        $existingCount = Collection::find()
+            ->userId($this->userId)
+            ->count();
+
+        if ($existingCount >= $maxCollections) {
+            $this->addError('userId', Craft::t('super-favourite',
+                'Maximum number of collections ({max}) reached. Please delete some collections before creating new ones.',
+                ['max' => $maxCollections]
+            ));
+        }
     }
 }
 

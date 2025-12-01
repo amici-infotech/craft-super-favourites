@@ -6,6 +6,8 @@ use craft\web\Controller;
 use yii\web\Response;
 
 use amici\SuperFavourite\Plugin;
+use amici\SuperFavourite\elements\Collection;
+use amici\SuperFavourite\elements\FavouriteItem;
 
 /**
  * Settings Controller
@@ -53,7 +55,7 @@ class SettingsController extends Controller
     {
         $this->requirePermission('accessPlugin-super-favourite');
 
-        $fieldLayout = Craft::$app->getFields()->getLayoutByType(\amici\SuperFavourite\elements\Collection::class);
+        $fieldLayout = Craft::$app->getFields()->getLayoutByType(Collection::class);
 
         return $this->renderTemplate('super-favourite/settings/collection-fields', [
             'fieldLayout' => $fieldLayout,
@@ -70,7 +72,7 @@ class SettingsController extends Controller
     {
         $this->requirePermission('accessPlugin-super-favourite');
 
-        $fieldLayout = Craft::$app->getFields()->getLayoutByType(\amici\SuperFavourite\elements\FavouriteItem::class);
+        $fieldLayout = Craft::$app->getFields()->getLayoutByType(FavouriteItem::class);
 
         return $this->renderTemplate('super-favourite/settings/favourite-fields', [
             'fieldLayout' => $fieldLayout,
@@ -133,7 +135,7 @@ class SettingsController extends Controller
         // Assemble the field layout from the posted data
         // The namespace matches the {% namespace 'fieldLayout' %} in the template
         $fieldLayout = $fieldsService->assembleLayoutFromPost('fieldLayout');
-        $fieldLayout->type = \amici\SuperFavourite\elements\Collection::class;
+        $fieldLayout->type = Collection::class;
 
         // Save the field layout
         if (!$fieldsService->saveLayout($fieldLayout)) {
@@ -166,7 +168,7 @@ class SettingsController extends Controller
 
         // Assemble the field layout from the posted data
         $fieldLayout = $fieldsService->assembleLayoutFromPost('fieldLayout');
-        $fieldLayout->type = \amici\SuperFavourite\elements\FavouriteItem::class;
+        $fieldLayout->type = FavouriteItem::class;
 
         // Save the field layout
         if (!$fieldsService->saveLayout($fieldLayout)) {

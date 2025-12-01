@@ -55,27 +55,22 @@ class FavouriteService extends Component
     const EVENT_AFTER_MOVE_FAVOURITE = 'afterMoveFavourite';
 
     /**
-     * Check if a favourite already exists using direct database query
+     * Check if a favourite already exists
      *
-     * This method uses a direct database query instead of element queries to avoid
-     * caching issues and ensure reliable duplicate detection, especially important
-     * for preventing race conditions during rapid favourite toggling.
+     * Checks if a favourite already exists for a specific user, collection, and element combination.
+     * This method uses element queries for consistent data access.
      *
      * @param int $userId The user ID
      * @param int|null $collectionId The collection ID (can be null)
      * @param int $elementId The element ID being favourited
-     * @return array|null Returns the favourite record if exists, null otherwise
+     * @return FavouriteItem|null Returns the favourite element if exists, null otherwise
      */
-    public function checkDuplicate(int $userId, ?int $collectionId, int $elementId): ?array
+    public function checkDuplicate(int $userId, ?int $collectionId, int $elementId): ?FavouriteItem
     {
-        return (new \yii\db\Query())
-            ->select(['id'])
-            ->from('{{%super_favourite_items}}')
-            ->where([
-                'userId' => $userId,
-                'collectionId' => $collectionId,
-                'elementId' => $elementId,
-            ])
+        return FavouriteItem::find()
+            ->userId($userId)
+            ->collectionId($collectionId)
+            ->elementId($elementId)
             ->one();
     }
 
@@ -121,7 +116,7 @@ class FavouriteService extends Component
         // Check for existing favourite to prevent duplicates
         $existing = $this->checkDuplicate($userId, $collectionId, $elementId);
         if ($existing) {
-            return FavouriteItem::find()->id($existing['id'])->one();
+            return $existing;
         }
 
         // Create new favourite item
@@ -440,20 +435,13 @@ class FavouriteService extends Component
             }
         }
 
-        // Check if favourite already exists using direct database query
+        // Check if favourite already exists
         $existing = $this->checkDuplicate($userId, $collectionId, $elementId);
 
         // If exists, remove it
         if ($existing) {
-            // Try to find and delete using element service (includes soft-deleted records)
-            $favouriteItem = FavouriteItem::find()
-                ->id($existing['id'])
-                ->status(null)
-                ->trashed(null)
-                ->one();
-
-            // Attempt hard delete via element service first
-            if ($favouriteItem && Craft::$app->getElements()->deleteElement($favouriteItem, true)) {
+            // Attempt hard delete via element service
+            if (Craft::$app->getElements()->deleteElement($existing, true)) {
                 return [
                     'success' => true,
                     'action' => 'removed',
@@ -464,25 +452,9 @@ class FavouriteService extends Component
                 ];
             }
 
-            // Fallback: Direct SQL deletion if element service fails
-            // This ensures the record is fully removed from database
-            (new \yii\db\Query())
-                ->createCommand()
-                ->delete('{{%super_favourite_items}}', ['id' => $existing['id']])
-                ->execute();
-
-            (new \yii\db\Query())
-                ->createCommand()
-                ->delete('{{%elements}}', ['id' => $existing['id']])
-                ->execute();
-
             return [
-                'success' => true,
-                'action' => 'removed',
-                'favouriteId' => null,
-                'elementId' => $elementId,
-                'elementType' => $elementType,
-                'collectionId' => $collectionId,
+                'success' => false,
+                'error' => 'Failed to remove favourite',
             ];
         }
 
@@ -492,7 +464,7 @@ class FavouriteService extends Component
             return [
                 'success' => false,
                 'error' => 'Favourite already exists',
-                'favouriteId' => $doubleCheck['id'],
+                'favouriteId' => $doubleCheck->id,
             ];
         }
 
@@ -529,6 +501,7 @@ class FavouriteService extends Component
      *               - id: Element ID
      *               - title: Element title
      *               - url: Element URL
+     *               - type: Element class name (fully qualified)
      *               - isFavourited: Boolean indicating if favourited
      *               - favouriteId: The favourite item ID if favourited, null otherwise
      *               - previewUrl: For assets, the URL for preview image
@@ -560,16 +533,12 @@ class FavouriteService extends Component
         foreach ($elements as $element) {
             $favourite = null;
 
-            // Check if element is favourited using direct database query
+            // Check if element is favourited using element query
             if ($userId) {
-                $favourite = (new \yii\db\Query())
-                    ->select(['id'])
-                    ->from('{{%super_favourite_items}}')
-                    ->where([
-                        'userId' => $userId,
-                        'collectionId' => $collectionId,
-                        'elementId' => $element->id,
-                    ])
+                $favourite = FavouriteItem::find()
+                    ->userId($userId)
+                    ->collectionId($collectionId)
+                    ->elementId($element->id)
                     ->one();
             }
 
@@ -578,8 +547,9 @@ class FavouriteService extends Component
                 'id' => $element->id,
                 'title' => $element->title ?? 'Untitled',
                 'url' => $element->getUrl(),
+                'type' => get_class($element),
                 'isFavourited' => $favourite !== null,
-                'favouriteId' => $favourite['id'] ?? null,
+                'favouriteId' => $favourite?->id ?? null,
             ];
 
             // Add preview URL for asset elements

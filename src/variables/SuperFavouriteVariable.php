@@ -5,6 +5,7 @@ use Craft;
 use amici\SuperFavourite\Plugin;
 use amici\SuperFavourite\elements\Collection;
 use amici\SuperFavourite\elements\FavouriteItem;
+use amici\SuperFavourite\elements\db\FavouriteItemQuery;
 
 /**
  * Super Favourite Variable
@@ -192,7 +193,7 @@ class SuperFavouriteVariable
     /**
      * Returns a favourite item query
      *
-     * @return \amici\SuperFavourite\elements\db\FavouriteItemQuery
+     * @return FavouriteItemQuery
      */
     public function favouriteItems()
     {
@@ -222,8 +223,8 @@ class SuperFavouriteVariable
             \craft\elements\ElementCollection::class,
             \craft\elements\NestedElementManager::class,
             // Our plugin types
-            \amici\SuperFavourite\elements\Collection::class,
-            \amici\SuperFavourite\elements\FavouriteItem::class,
+            Collection::class,
+            FavouriteItem::class,
             // Commerce internal types
             \craft\commerce\elements\Variant::class,
             \craft\commerce\elements\Donation::class,

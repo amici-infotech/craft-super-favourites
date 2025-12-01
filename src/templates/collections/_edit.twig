@@ -53,27 +53,26 @@
             rows: 3
         }) }}
 
-        {{ forms.elementSelectField({
-            label: "Assign to User"|t('super-favourite'),
-            instructions: "Assign this collection to a specific user. Leave empty for global collection available to all users."|t('super-favourite'),
-            id: 'userId',
-            name: 'userId',
-            elementType: 'craft\\elements\\User',
-            limit: 1,
-            elements: collection.userId ? [collection.getUser()] : [],
-            errors: collection.getErrors('userId')
+        {{ forms.lightswitchField({
+            label: "Default Collection"|t('super-favourite'),
+            instructions: "Whether this is a default collection for new favourites. Default collections are always global and cannot be assigned to users."|t('super-favourite'),
+            id: 'isDefault',
+            name: 'isDefault',
+            value: 1,
+            on: collection.isDefault,
+            errors: collection.getErrors('isDefault')
         }) }}
 
-        <div id="default-collection-field">
-            {{ forms.lightswitchField({
-                label: "Default Collection"|t('super-favourite'),
-                instructions: "Whether this is a default collection for new favourites. Only global collections can be default."|t('super-favourite'),
-                id: 'isDefault',
-                name: 'isDefault',
-                value: 1,
-                on: collection.isDefault,
-                errors: collection.getErrors('isDefault'),
-                disabled: collection.userId ? true : false
+        <div id="user-field-wrapper">
+            {{ forms.elementSelectField({
+                label: "Assign to User"|t('super-favourite'),
+                instructions: "Assign this collection to a specific user. Leave empty for global collection."|t('super-favourite'),
+                id: 'userId',
+                name: 'userId',
+                elementType: 'craft\\elements\\User',
+                limit: 1,
+                elements: collection.userId ? [collection.getUser()] : [],
+                errors: collection.getErrors('userId')
             }) }}
         </div>
 
@@ -118,39 +117,60 @@ new Craft.Tabs($('#tabs'));
 {% endif %}
 
 {% js %}
-    // Hide/disable default collection field when user is selected
+    // Hide user field when default collection is enabled
     (function() {
-        var userField = $('#userId');
-        var defaultField = $('#default-collection-field');
-        var defaultSwitch = $('#isDefault');
+        var $userFieldWrapper = $('#user-field-wrapper');
+        var $userField = $('#userId');
+        var $defaultSwitch = $('#isDefault');
+        var $defaultSwitchContainer = $defaultSwitch.closest('.lightswitch');
 
-        function toggleDefaultField() {
-            var hasUser = userField.val() && userField.val().length > 0;
-            if (hasUser) {
-                defaultField.addClass('hidden');
-                defaultSwitch.prop('checked', false).trigger('change');
+        function clearUserField() {
+            // Find and clear the element select
+            var $elementSelect = $userField.closest('.elementselect');
+            if ($elementSelect.length) {
+                var elementSelect = $elementSelect.data('elementSelect');
+                if (elementSelect && typeof elementSelect.removeAllElements === 'function') {
+                    elementSelect.removeAllElements();
+                }
+            }
+
+            // Also clear any hidden inputs with userId name
+            $('input[name="userId[]"]').remove();
+            $userField.val('');
+        }
+
+        function toggleUserField() {
+            var isDefault = $defaultSwitch.prop('checked') || $defaultSwitchContainer.hasClass('on');
+
+            if (isDefault) {
+                // Hide user field
+                $userFieldWrapper.hide();
+
+                // Clear selected user
+                clearUserField();
             } else {
-                defaultField.removeClass('hidden');
+                // Show user field
+                $userFieldWrapper.show();
             }
         }
 
-        // Check on load
-        toggleDefaultField();
+        // Wait for Craft to initialize, then check on load
+        setTimeout(function() {
+            toggleUserField();
+        }, 100);
 
-        // Check when user field changes
-        userField.on('change', toggleDefaultField);
-
-        // Listen to Craft's element select events
-        $(document).on('elementSelect', function(e) {
-            if ($(e.target).attr('id') === 'userId') {
-                toggleDefaultField();
-            }
+        // Listen to clicks on the lightswitch container
+        $defaultSwitchContainer.on('click', function() {
+            setTimeout(function() {
+                toggleUserField();
+            }, 50);
         });
 
-        $(document).on('elementDeselect', function(e) {
-            if ($(e.target).attr('id') === 'userId') {
-                toggleDefaultField();
-            }
+        // Also listen to change on the checkbox itself
+        $defaultSwitch.on('change', function() {
+            setTimeout(function() {
+                toggleUserField();
+            }, 50);
         });
     })();
 {% endjs %}
