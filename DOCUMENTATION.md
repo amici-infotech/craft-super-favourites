@@ -1955,8 +1955,8 @@ Event::on(
 For issues, questions, or feature requests:
 
 - **Email:** support@amiciinfotech.com
-- **GitHub:** [Report an issue](https://github.com/amici-infotech/craft-super-favourite/issues)
-- **Documentation:** [View online docs](https://github.com/amici-infotech/craft-super-favourite)
+- **GitHub:** [Report an issue](https://github.com/amici-infotech/craft-super-favourites/issues)
+- **Documentation:** [View online docs](https://github.com/amici-infotech/craft-super-favourites)
 
 ---
 

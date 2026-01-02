@@ -13,9 +13,9 @@
     ],
     "support": {
         "email": "contact@amiciinfotech.com",
-        "issues": "https://github.com/amici-infotech/super-favourite/issues?state=open",
-        "source": "https://github.com/amici-infotech/super-favourite",
-        "docs": "https://github.com/amici-infotech/super-favourite"
+        "issues": "https://github.com/amici-infotech/craft-super-favourites/issues?state=open",
+        "source": "https://github.com/amici-infotech/craft-super-favourites",
+        "docs": "https://github.com/amici-infotech/craft-super-favourites"
     },
     "require": {
         "php": "^8.0.2 || ^8.1 || ^8.2",
@@ -32,8 +32,8 @@
         "description": "A powerful wishlist/favourite plugin for Craft CMS that allows users to favourite any element type with collections support",
         "developer": "Amici Infotech",
         "developerUrl": "https://amiciinfotech.com",
-        "documentationUrl": "https://github.com/amici-infotech/super-favourite",
-        "changelogUrl": "https://github.com/amici-infotech/super-favourite/CHANGELOG.md",
+        "documentationUrl": "https://github.com/amici-infotech/craft-super-favourites",
+        "changelogUrl": "https://github.com/amici-infotech/craft-super-favourites/CHANGELOG.md",
         "class": "amici\\SuperFavourite\\Plugin"
     }
 }
