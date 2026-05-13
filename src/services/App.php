@@ -10,9 +10,9 @@ use craft\base\Component;
  */
 class App extends Component
 {
-    public $favourite;
-    public $collection;
-    public $settings;
+    public FavouriteService $favourite;
+    public CollectionService $collection;
+    public Settings $settings;
 
     /**
      * Initializes the plugin/component and wires together its dependent services or registrations.

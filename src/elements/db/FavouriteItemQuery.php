@@ -11,11 +11,11 @@ use craft\helpers\Db;
  */
 class FavouriteItemQuery extends ElementQuery
 {
-    public $userId;
-    public $collectionId;
-    public $elementId;
-    public $favouritedElementType;
-    public $sortOrder;
+    public mixed $userId = null;
+    public mixed $collectionId = null;
+    public mixed $elementId = null;
+    public mixed $favouritedElementType = null;
+    public mixed $sortOrder = null;
 
     /**
      * Runs the `userId()` method for this plugin class.

@@ -18,7 +18,7 @@
         "docs": "https://github.com/amici-infotech/craft-super-favourites"
     },
     "require": {
-        "php": "^8.0.2 || ^8.1 || ^8.2",
+        "php": "^8.0.2 || ^8.1 || ^8.2 || ^8.3 || ^8.4",
         "craftcms/cms": "^4.0 || ^5.0"
     },
     "autoload": {

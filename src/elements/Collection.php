@@ -8,7 +8,7 @@ use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\actions\View;
-use craft\elements\db\ElementQueryInterface;
+use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
@@ -17,6 +17,7 @@ use Exception;
 use amici\SuperFavourite\elements\db\CollectionQuery;
 use amici\SuperFavourite\records\CollectionRecord;
 use amici\SuperFavourite\Plugin;
+use amici\SuperFavourite\conditions\CollectionCondition;
 
 /**
  * Collection Element
@@ -25,17 +26,17 @@ use amici\SuperFavourite\Plugin;
  */
 class Collection extends Element
 {
-    public $userId;
-    public $name;
-    public $handle;
-    public $description;
-    public $isDefault = false;
-    public $allowedElementTypes;
-    public $sortOrder = 0;
+    public ?int $userId = null;
+    public ?string $name = null;
+    public ?string $handle = null;
+    public ?string $description = null;
+    public bool $isDefault = false;
+    public array|string|null $allowedElementTypes = null;
+    public int $sortOrder = 0;
     public ?int $fieldLayoutId = null;
 
-    private $_user;
-    private $_itemCount;
+    private User|false|null $_user = null;
+    private ?int $_itemCount = null;
 
     /**
      * Returns the is global value.
@@ -170,9 +171,9 @@ class Collection extends Element
     /**
      * Creates the custom query class for this element type.
      *
-     * @return ElementQueryInterface A custom element query instance.
+     * @return CollectionQuery A custom element query instance.
      */
-    public static function find(): ElementQueryInterface
+    public static function find(): CollectionQuery
     {
         return new CollectionQuery(static::class);
     }
@@ -180,11 +181,11 @@ class Collection extends Element
     /**
      * Creates the condition model used by Craft element indexes.
      *
-     * @return \craft\elements\conditions\ElementConditionInterface The condition object used by Craft element indexes.
+     * @return ElementConditionInterface The condition object used by Craft element indexes.
      */
-    public static function createCondition(): \craft\elements\conditions\ElementConditionInterface
+    public static function createCondition(): ElementConditionInterface
     {
-        return Craft::createObject(\amici\SuperFavourite\conditions\CollectionCondition::class, [static::class]);
+        return Craft::createObject(CollectionCondition::class, [static::class]);
     }
 
     /**
@@ -447,7 +448,7 @@ class Collection extends Element
         // Prevent deleting collections that have enabled favourite items
         $enabledItemsCount = FavouriteItem::find()
             ->collectionId($this->id)
-            ->status(\craft\elements\Element::STATUS_ENABLED)
+            ->status(Element::STATUS_ENABLED)
             ->count();
 
         if ($enabledItemsCount > 0) {

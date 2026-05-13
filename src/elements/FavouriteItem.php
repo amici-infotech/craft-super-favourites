@@ -8,7 +8,7 @@ use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\actions\View;
-use craft\elements\db\ElementQueryInterface;
+use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
@@ -17,6 +17,7 @@ use Exception;
 use amici\SuperFavourite\elements\db\FavouriteItemQuery;
 use amici\SuperFavourite\records\FavouriteItemRecord;
 use amici\SuperFavourite\Plugin;
+use amici\SuperFavourite\conditions\FavouriteItemCondition;
 
 /**
  * FavouriteItem Element
@@ -26,17 +27,17 @@ use amici\SuperFavourite\Plugin;
 class FavouriteItem extends Element
 {
     // Properties
-    public $userId;
-    public $collectionId;
-    public $elementId;
-    public $elementType;
-    public $sortOrder = 0;
-    public $notes;
+    public ?int $userId = null;
+    public ?int $collectionId = null;
+    public ?int $elementId = null;
+    public ?string $elementType = null;
+    public int $sortOrder = 0;
+    public ?string $notes = null;
     public ?int $fieldLayoutId = null;
 
-    private $_user;
-    private $_collection;
-    private $_favouritedElement;
+    private User|false|null $_user = null;
+    private Collection|false|null $_collection = null;
+    private Element|false|null $_favouritedElement = null;
 
     /**
      * Returns the singular display name Craft shows for this element type.
@@ -161,9 +162,9 @@ class FavouriteItem extends Element
     /**
      * Creates the custom query class for this element type.
      *
-     * @return ElementQueryInterface A custom element query instance.
+     * @return FavouriteItemQuery A custom element query instance.
      */
-    public static function find(): ElementQueryInterface
+    public static function find(): FavouriteItemQuery
     {
         return new FavouriteItemQuery(static::class);
     }
@@ -171,11 +172,11 @@ class FavouriteItem extends Element
     /**
      * Creates the condition model used by Craft element indexes.
      *
-     * @return \craft\elements\conditions\ElementConditionInterface The condition object used by Craft element indexes.
+     * @return ElementConditionInterface The condition object used by Craft element indexes.
      */
-    public static function createCondition(): \craft\elements\conditions\ElementConditionInterface
+    public static function createCondition(): ElementConditionInterface
     {
-        return Craft::createObject(\amici\SuperFavourite\conditions\FavouriteItemCondition::class, [static::class]);
+        return Craft::createObject(FavouriteItemCondition::class, [static::class]);
     }
 
     /**

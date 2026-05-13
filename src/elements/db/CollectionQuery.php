@@ -11,13 +11,13 @@ use craft\helpers\Db;
  */
 class CollectionQuery extends ElementQuery
 {
-    public $userId;
-    public $name;
-    public $handle;
-    public $isDefault;
-    public $sortOrder;
+    public mixed $userId = null;
+    public mixed $name = null;
+    public mixed $handle = null;
+    public mixed $isDefault = null;
+    public mixed $sortOrder = null;
 
-    private $_userIdSet = false;
+    private bool $_userIdSet = false;
 
     /**
      * Runs the `userId()` method for this plugin class.
