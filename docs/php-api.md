@@ -147,44 +147,27 @@ Access:
 $service = Plugin::getInstance()->collection;
 ```
 
-### Create a User Collection
+### Create or Update Collections
 
-```php
-$collection = Plugin::getInstance()->collection->createCollection(
-    userId: 1,
-    name: 'My Wishlist',
-    handle: 'my-wishlist',
-    description: 'Things I want to save',
-    isDefault: false
-);
-```
-
-### Create a Global Collection
-
-The service signature expects an integer user ID in the current code, while the element/controller support `null` for global collections. To create global collections programmatically, instantiate and save the element directly:
+For the most control, create/save the `Collection` element directly. This covers user, global, default, allowed element type, and custom field use cases in one pattern.
 
 ```php
 $collection = new \amici\SuperFavourite\elements\Collection();
-$collection->name = 'Staff Picks';
-$collection->handle = 'staff-picks';
-$collection->description = 'Shared recommendations';
-$collection->userId = null;
-$collection->allowedElementTypes = null;
+$collection->name = 'My Wishlist';
+$collection->handle = 'my-wishlist';
+$collection->description = 'Things I want to save';
+$collection->userId = 1; // null = global collection
+$collection->isDefault = false; // true = global default fallback collection
+$collection->allowedElementTypes = [
+    \craft\elements\Entry::class,
+    \craft\elements\Asset::class,
+]; // null = all element types
+$collection->setFieldValue('shortIntro', 'Optional custom field value');
 
 Craft::$app->getElements()->saveElement($collection);
 ```
 
-### Update a Collection
-
-```php
-$collection = Plugin::getInstance()->collection->updateCollection(
-    collectionId: 5,
-    attributes: [
-        'name' => 'Updated Wishlist',
-        'description' => 'Updated description',
-    ]
-);
-```
+The `CollectionService::createCollection()` helper is useful for simple user-owned collections. The element pattern above is clearer when you need global/default collections, allowed element type restrictions, or custom fields.
 
 ### Delete a Collection
 

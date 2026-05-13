@@ -31,46 +31,22 @@ Use this screen to:
 
 [screenshot for backend collections index]
 
-## Create a Global Collection
+## Create or Edit a Collection
 
 1. Go to **Super Favourite -> Collections**.
 2. Click **New Collection**.
 3. Enter **Name** and **Handle**.
-4. Leave **Assign to User** empty.
+4. Set ownership and default behavior:
+   - Leave **Assign to User** empty for a global collection.
+   - Choose a user for a user-owned collection.
+   - Enable **Default Collection** when it should be the fallback for favourites saved without `collectionId`.
 5. Choose allowed element types, or leave all enabled.
-6. Save.
+6. Fill any collection custom fields.
+7. Save.
 
-Global collections are available site-wide. They are useful for shared lists and defaults.
+Global collections are available site-wide. User collections belong to one Craft user. Default collections are global, so the user field is hidden and cleared when default is enabled.
 
-[screenshot for backend create global collection form]
-
-## Create a User Collection
-
-1. Go to **Super Favourite -> Collections**.
-2. Click **New Collection**.
-3. Enter **Name** and **Handle**.
-4. Select a user in **Assign to User**.
-5. Choose allowed element types.
-6. Save.
-
-User collections are personal to one Craft user.
-
-[screenshot for backend create user collection form]
-
-## Create a Default Collection
-
-1. Go to **Super Favourite -> Collections**.
-2. Open or create a global collection.
-3. Enable **Default Collection**.
-4. Save.
-
-When a collection is default:
-
-- It is global.
-- The user field is hidden and cleared.
-- It is protected from deletion.
-
-[screenshot for backend default collection setting]
+[screenshot for backend collection create/edit form showing user, default, and allowed element type fields]
 
 ## Collection Custom Fields
 

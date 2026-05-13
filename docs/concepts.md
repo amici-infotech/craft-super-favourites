@@ -97,7 +97,20 @@ In the CP, use **Allowed Element Types** on the collection edit screen.
 
 [screenshot for allowed element types field]
 
-In frontend code, validate user choices by saving through the plugin action/service. The controller checks the collection's allowed element types before saving a favourite.
+In frontend code, render options dynamically with `craft.superFavourite.getAvailableElementTypes()` so the form follows the element types registered in Craft:
+
+```twig
+{% set elementTypes = craft.superFavourite.getAvailableElementTypes() %}
+
+{% for elementType in elementTypes %}
+    <label>
+        <input type="checkbox" name="allowedElementTypes[]" value="{{ elementType.value }}">
+        {{ elementType.label }}
+    </label>
+{% endfor %}
+```
+
+Always save through the plugin action/service. The controller checks the collection's allowed element types before saving a favourite.
 
 ## Custom Fields on Collections
 
