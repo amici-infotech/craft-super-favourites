@@ -16,7 +16,7 @@
         {{ redirectInput('super-favourite/collections') }}
 
         {% if collection.id %}
-            {{ hiddenInput('collectionId', collection.id) }}
+            {{ hiddenInput('id', collection.id) }}
         {% endif %}
 
         {{ forms.textField({

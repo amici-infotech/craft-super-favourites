@@ -22,30 +22,30 @@ The `_self.fieldErrors()` macro renders validation errors from the model Craft r
     {% endif %}
 {% endmacro %}
 
-{% set collection = collection ?? null %}
+{% set collection = collection ?? create('amici\\SuperFavourite\\elements\\Collection') %}
 {% set elementTypes = craft.superFavourite.getAvailableElementTypes() %}
-{% set isDefault = collection ? collection.isDefault : false %}
+{% set isDefault = collection.isDefault %}
 
 <form method="post" accept-charset="UTF-8">
     {{ csrfInput() }}
     {{ actionInput('super-favourite/collection/save') }}
     {{ redirectInput('/account/collections') }}
 
-    {# Include collectionId only when editing. Missing collectionId creates a new collection. #}
-    {% if collection %}
-        <input type="hidden" name="collectionId" value="{{ collection.id }}">
+    {# Include id only when editing. Missing id creates a new collection. #}
+    {% if collection.id %}
+        <input type="hidden" name="id" value="{{ collection.id }}">
     {% endif %}
 
     {# Required. If handle is empty, the plugin generates a handle from this name. #}
-    <input type="text" name="name" value="{{ collection ? collection.name : '' }}" required>
+    <input type="text" name="name" value="{{ collection.name }}" required>
     {{ _self.fieldErrors(collection, 'name') }}
 
     {# Optional. Leave empty on create if you want the plugin to generate it. #}
-    <input type="text" name="handle" value="{{ collection ? collection.handle : '' }}">
+    <input type="text" name="handle" value="{{ collection.handle }}">
     {{ _self.fieldErrors(collection, 'handle') }}
 
     {# Optional plain collection description. #}
-    <textarea name="description">{{ collection ? collection.description : '' }}</textarea>
+    <textarea name="description">{{ collection.description }}</textarea>
     {{ _self.fieldErrors(collection, 'description') }}
 
     {# User collection: set this to a user ID, usually currentUser.id. #}
@@ -56,7 +56,7 @@ The `_self.fieldErrors()` macro renders validation errors from the model Craft r
         <input
             type="number"
             name="userId"
-            value="{{ collection and collection.userId ? collection.userId : (currentUser ? currentUser.id : '') }}"
+            value="{{ collection.id ? collection.userId : currentUser.id }}"
         >
     </label>
     {{ _self.fieldErrors(collection, 'userId') }}
@@ -87,9 +87,9 @@ The `_self.fieldErrors()` macro renders validation errors from the model Craft r
     {{ _self.fieldErrors(collection, 'allowedElementTypes') }}
 
     {# Collection custom fields use the fields namespace. #}
-    <textarea name="fields[shortIntro]">{{ collection ? collection.shortIntro : '' }}</textarea>
+    <textarea name="fields[shortIntro]">{{ collection.shortIntro }}</textarea>
 
-    <button type="submit">{{ collection ? 'Update collection' : 'Create collection' }}</button>
+    <button type="submit">{{ collection.id ? 'Update collection' : 'Create collection' }}</button>
 </form>
 ```
 
@@ -122,7 +122,7 @@ To allow all element types, submit no `allowedElementTypes[]` values. If your UI
     {{ actionInput('super-favourite/collection/delete') }}
     {{ redirectInput('/account/collections') }}
 
-    <input type="hidden" name="collectionId" value="{{ collection.id }}">
+    <input type="hidden" name="id" value="{{ collection.id }}">
 
     {# Optional. Requests deletion of favourite items in the collection too. #}
     <input type="hidden" name="deleteItems" value="1">
@@ -145,9 +145,9 @@ Use `favourite/add` for a simple add button. Use `favourite/save` when you need 
     {{ actionInput('super-favourite/favourite/save') }}
     {{ redirectInput(craft.app.request.url) }}
 
-    {# Include favouriteId only when editing an existing favourite item. #}
+    {# Include id only when editing an existing favourite item. #}
     {% if favourite is defined and favourite %}
-        <input type="hidden" name="favouriteId" value="{{ favourite.id }}">
+        <input type="hidden" name="id" value="{{ favourite.id }}">
     {% endif %}
 
     {# The saved Craft element. #}
@@ -198,7 +198,7 @@ Delete by favourite item ID when you are listing favourite items:
     {{ actionInput('super-favourite/favourite/delete') }}
     {{ redirectInput(craft.app.request.url) }}
 
-    <input type="hidden" name="favouriteId" value="{{ favourite.id }}">
+    <input type="hidden" name="id" value="{{ favourite.id }}">
 
     <button type="submit">Delete favourite</button>
 </form>
@@ -252,7 +252,7 @@ document.querySelector('[data-favourite-toggle]').addEventListener('click', asyn
     {{ actionInput('super-favourite/favourite/move') }}
     {{ redirectInput(craft.app.request.url) }}
 
-    <input type="hidden" name="favouriteId" value="{{ favourite.id }}">
+    <input type="hidden" name="id" value="{{ favourite.id }}">
 
     <select name="collectionId">
         {% for option in craft.superFavourite.getCollections() %}

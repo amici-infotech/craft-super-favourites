@@ -34,7 +34,7 @@ Method: `POST`
 
 Fields:
 
-- `collectionId` - optional; include when editing.
+- `id` - optional; include when editing the collection element.
 - `name` - required.
 - `handle` - optional; generated when empty.
 - `description` - optional.
@@ -59,7 +59,7 @@ Method: `POST`
 
 Fields:
 
-- `collectionId` - required.
+- `id` - required collection element ID.
 - `deleteItems` - optional boolean.
 
 Requires login. Admins can delete any collection; users can delete their own collections and global collections if allowed by validation.
@@ -76,7 +76,7 @@ Method: `POST`
 
 Fields:
 
-- `collectionId` - required.
+- `id` - required collection element ID.
 
 Permission:
 
@@ -133,7 +133,7 @@ Method: `POST`
 
 Fields:
 
-- `favouriteId` - optional; include when editing.
+- `id` - optional; include when editing the favourite item element.
 - `elementType` - required.
 - `elementId` - required. CP element select may submit an array.
 - `userId` - optional for frontend; current user is used when empty.
@@ -216,7 +216,7 @@ Method: `POST`
 
 Fields:
 
-- `favouriteId` - required.
+- `id` - required favourite item element ID.
 - `collectionId` - required destination collection.
 
 Requires login.
@@ -233,7 +233,7 @@ Method: `POST`
 
 Fields:
 
-- `favouriteId` - required.
+- `id` - required favourite item element ID.
 
 Requires login. The current user must own the favourite or be an admin.
 

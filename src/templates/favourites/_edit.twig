@@ -16,7 +16,7 @@
     {{ redirectInput('super-favourite/favourites') }}
 
     {% if favouriteItem.id %}
-        {{ hiddenInput('favouriteId', favouriteItem.id) }}
+        {{ hiddenInput('id', favouriteItem.id) }}
     {% endif %}
 
     {{ forms.selectField({

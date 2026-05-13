@@ -105,7 +105,7 @@ class CollectionController extends Controller
         $this->requirePermission('super-favourite:manage-collections');
 
         $request = Craft::$app->getRequest();
-        $collectionId = $request->getBodyParam('collectionId');
+        $collectionId = $request->getBodyParam('id') ?? $request->getBodyParam('collectionId');
 
         if ($collectionId) {
             $collection = Collection::find()->id($collectionId)->one();
@@ -214,7 +214,10 @@ class CollectionController extends Controller
         $this->requireLogin();
 
         $request = Craft::$app->getRequest();
-        $collectionId = $request->getRequiredBodyParam('collectionId');
+        $collectionId = $request->getBodyParam('id') ?? $request->getBodyParam('collectionId');
+        if (!$collectionId) {
+            throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
+        }
 
         // Get the collection to check ownership
         $collection = Collection::find()->id($collectionId)->one();
@@ -294,7 +297,10 @@ class CollectionController extends Controller
         $this->requirePermission('super-favourite:manage-collections');
 
         $request = Craft::$app->getRequest();
-        $collectionId = $request->getRequiredBodyParam('collectionId');
+        $collectionId = $request->getBodyParam('id') ?? $request->getBodyParam('collectionId');
+        if (!$collectionId) {
+            throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
+        }
 
         $success = Plugin::getInstance()->collection->setDefaultCollection((int)$collectionId);
 

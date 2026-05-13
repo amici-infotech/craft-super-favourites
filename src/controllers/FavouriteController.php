@@ -276,7 +276,7 @@ class FavouriteController extends Controller
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
-        $favouriteId = $request->getBodyParam('favouriteId');
+        $favouriteId = $request->getBodyParam('id') ?? $request->getBodyParam('favouriteId');
 
         // Check if this is a CP request (requires permission) or frontend request (requires login)
         $isCpRequest = $request->getIsCpRequest();
@@ -712,7 +712,10 @@ class FavouriteController extends Controller
 
         $request = Craft::$app->getRequest();
 
-        $favouriteId = $request->getRequiredBodyParam('favouriteId');
+        $favouriteId = $request->getBodyParam('id') ?? $request->getBodyParam('favouriteId');
+        if (!$favouriteId) {
+            throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
+        }
         $newCollectionId = $request->getRequiredBodyParam('collectionId');
 
         // Attempt to move favourite to new collection
@@ -741,7 +744,10 @@ class FavouriteController extends Controller
         $this->requireLogin();
 
         $request = Craft::$app->getRequest();
-        $favouriteId = $request->getRequiredBodyParam('favouriteId');
+        $favouriteId = $request->getBodyParam('id') ?? $request->getBodyParam('favouriteId');
+        if (!$favouriteId) {
+            throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
+        }
 
         // Find the favourite item to delete
         $favouriteItem = FavouriteItem::find()
