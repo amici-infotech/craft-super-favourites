@@ -39,7 +39,9 @@ class FavouriteItem extends Element
     private $_favouritedElement;
 
     /**
-     * @inheritdoc
+     * Returns the singular display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function displayName(): string
     {
@@ -47,7 +49,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the lower-case singular display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function lowerDisplayName(): string
     {
@@ -55,7 +59,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the plural display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function pluralDisplayName(): string
     {
@@ -63,7 +69,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the lower-case plural display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function pluralLowerDisplayName(): string
     {
@@ -71,7 +79,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the reference handle Craft uses for this element type.
+     *
+     * @return ?string The requested string value, or null when none exists.
      */
     public static function refHandle(): ?string
     {
@@ -79,7 +89,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether changes should be tracked for this element type.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function trackChanges(): bool
     {
@@ -87,7 +99,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type stores content/custom field values.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasContent(): bool
     {
@@ -95,7 +109,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type has a title.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasTitles(): bool
     {
@@ -103,7 +119,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the configured field layout for this element type.
+     *
+     * @return ?\craft\models\FieldLayout The `?\craft\models\FieldLayout` value produced by this method.
      */
     public function getFieldLayout(): ?\craft\models\FieldLayout
     {
@@ -111,7 +129,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type has public URLs.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasUris(): bool
     {
@@ -119,7 +139,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type is localized per site.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function isLocalized(): bool
     {
@@ -127,7 +149,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type supports statuses.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasStatuses(): bool
     {
@@ -135,7 +159,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Creates the custom query class for this element type.
+     *
+     * @return ElementQueryInterface A custom element query instance.
      */
     public static function find(): ElementQueryInterface
     {
@@ -143,7 +169,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Creates the condition model used by Craft element indexes.
+     *
+     * @return \craft\elements\conditions\ElementConditionInterface The condition object used by Craft element indexes.
      */
     public static function createCondition(): \craft\elements\conditions\ElementConditionInterface
     {
@@ -151,7 +179,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines sort options available in the element index.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineSortOptions(): array
     {
@@ -177,7 +207,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines sidebar sources available in the element index.
+     *
+     * @param string $context The element index context requesting sources.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineSources(string $context = null): array
     {
@@ -214,7 +248,11 @@ class FavouriteItem extends Element
 
 
     /**
-     * @inheritdoc
+     * Defines bulk actions available in the element index.
+     *
+     * @param string $source The selected element index source, or null for general index setup.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineActions(string $source = null): array
     {
@@ -245,7 +283,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines optional table columns for the element index.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineTableAttributes(): array
     {
@@ -262,7 +302,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines default table columns for the element index.
+     *
+     * @param string $source The selected element index source, or null for general index setup.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineDefaultTableAttributes(string $source): array
     {
@@ -270,7 +314,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines attributes included in Craft element search.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineSearchableAttributes(): array
     {
@@ -278,7 +324,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns this element's Control Panel edit URL.
+     *
+     * @return ?string The requested string value, or null when none exists.
      */
     public function getCpEditUrl(): ?string
     {
@@ -286,7 +334,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the Control Panel edit URL Craft uses internally.
+     *
+     * @return ?string The requested string value, or null when none exists.
      */
     protected function cpEditUrl(): ?string
     {
@@ -294,9 +344,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * Get the URL for viewing this favourite item
+     * Returns the view URL for this element when Craft asks for one.
      *
-     * @return string|null
+     * @return ?string The requested string value, or null when none exists.
      */
     public function getUrl(): ?string
     {
@@ -306,7 +356,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Renders custom table-cell HTML for plugin-specific element attributes.
+     *
+     * @param string $attribute The table attribute key being rendered.
+     *
+     * @return string The requested string value.
      */
     protected function attributeHtml(string $attribute): string
     {
@@ -331,7 +385,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element can be deleted.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function getIsDeletable(): bool
     {
@@ -339,7 +395,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a user can save this element.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function canSave(User $user): bool
     {
@@ -347,7 +407,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a user can view this element.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function canView(User $user): bool
     {
@@ -355,7 +419,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a user can delete this element.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function canDelete(User $user): bool
     {
@@ -363,7 +431,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * Get the user who owns this favourite
+     * Returns the related user element, caching the lookup for this request.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getUser()
     {
@@ -374,7 +444,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * Get the collection this favourite belongs to
+     * Returns the related collection element, caching the lookup for this request.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getCollection()
     {
@@ -385,7 +457,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * Get the actual element that was favourited
+     * Returns the Craft element represented by this favourite item.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getFavouritedElement()
     {
@@ -402,7 +476,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * Get a human-readable label for the element type
+     * Returns a readable label for the favourited element class.
+     *
+     * @return string The requested string value.
      */
     public function getElementTypeLabel(): string
     {
@@ -415,7 +491,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Normalizes data before Craft saves the element.
+     *
+     * @param bool $isNew Whether Craft is saving a new element instead of updating an existing one.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function beforeSave(bool $isNew): bool
     {
@@ -427,7 +507,11 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Writes element data to the plugin's custom record table after Craft saves it.
+     *
+     * @param bool $isNew Whether Craft is saving a new element instead of updating an existing one.
+     *
+     * @return void Nothing is returned.
      */
     public function afterSave(bool $isNew): void
     {
@@ -454,7 +538,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines validation rules for this model or element.
+     *
+     * @return array The requested array of data.
      */
     public function defineRules(): array
     {
@@ -472,7 +558,9 @@ class FavouriteItem extends Element
     }
 
     /**
-     * Validate that the collection hasn't exceeded the maximum number of favourites
+     * Validates the configured maximum favourites per collection.
+     *
+     * @return void Nothing is returned.
      */
     public function validateMaxFavouritesPerCollection(): void
     {

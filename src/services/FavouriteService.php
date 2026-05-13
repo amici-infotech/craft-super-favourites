@@ -55,15 +55,13 @@ class FavouriteService extends Component
     const EVENT_AFTER_MOVE_FAVOURITE = 'afterMoveFavourite';
 
     /**
-     * Check if a favourite already exists
+     * Finds an existing favourite with the same user, collection, and element.
      *
-     * Checks if a favourite already exists for a specific user, collection, and element combination.
-     * This method uses element queries for consistent data access.
+     * @param int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param ?int $collectionId The ID of the collection element.
+     * @param int $elementId The ID of the Craft element being favourited or checked.
      *
-     * @param int $userId The user ID
-     * @param int|null $collectionId The collection ID (can be null)
-     * @param int $elementId The element ID being favourited
-     * @return FavouriteItem|null Returns the favourite element if exists, null otherwise
+     * @return ?FavouriteItem The existing favourite item, or null when no duplicate exists.
      */
     public function checkDuplicate(int $userId, ?int $collectionId, int $elementId): ?FavouriteItem
     {
@@ -75,18 +73,15 @@ class FavouriteService extends Component
     }
 
     /**
-     * Add an element to favourites
+     * Creates a favourite item or returns the existing one when it already exists.
      *
-     * Creates a new favourite item linking a user, collection, and element.
-     * If the item already exists, returns the existing favourite instead of creating a duplicate.
-     * Triggers BEFORE and AFTER events for extensibility.
+     * @param int $elementId The ID of the Craft element being favourited or checked.
+     * @param string $elementType The fully qualified class name of the Craft element type.
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param ?int $collectionId The ID of the collection element.
+     * @param ?string $notes Optional notes stored on the favourite item.
      *
-     * @param int $elementId The ID of the element to favourite
-     * @param string $elementType The fully qualified class name of the element type (e.g., craft\elements\Entry)
-     * @param int|null $userId The user ID (defaults to current logged-in user)
-     * @param int|null $collectionId The collection ID (defaults to user's default collection)
-     * @param string|null $notes Optional notes about why this item was favourited
-     * @return FavouriteItem|false The created/existing favourite item, or false on failure
+     * @return mixed The created/existing favourite item, or false on failure.
      */
     public function addFavourite(
         int $elementId,
@@ -150,17 +145,14 @@ class FavouriteService extends Component
     }
 
     /**
-     * Remove an element from favourites
+     * Removes favourite items matching the supplied filters.
      *
-     * Deletes one or more favourite items matching the criteria. Can perform either
-     * soft delete (moves to trash) or hard delete (permanently removes from database).
-     * Hard delete is recommended to prevent soft-deleted records from interfering with duplicate checks.
+     * @param int $elementId The ID of the Craft element being favourited or checked.
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param ?int $collectionId The ID of the collection element.
+     * @param bool $hardDelete Whether to permanently delete instead of soft-deleting.
      *
-     * @param int $elementId The ID of the element to unfavourite
-     * @param int|null $userId The user ID (defaults to current logged-in user)
-     * @param int|null $collectionId The collection ID (null = remove from all collections)
-     * @param bool $hardDelete Whether to permanently delete (true) or soft delete (false)
-     * @return bool True if all matching favourites were successfully removed
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function removeFavourite(
         int $elementId,
@@ -220,7 +212,13 @@ class FavouriteService extends Component
     }
 
     /**
-     * Check if an element is favourited
+     * Checks whether a user has favourited an element.
+     *
+     * @param int $elementId The ID of the Craft element being favourited or checked.
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param ?int $collectionId The ID of the collection element.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function isFavourited(
         int $elementId,
@@ -247,7 +245,13 @@ class FavouriteService extends Component
     }
 
     /**
-     * Get all favourited element IDs for a user
+     * Returns IDs for elements favourited by a user.
+     *
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param ?int $collectionId The ID of the collection element.
+     * @param ?string $elementType The fully qualified class name of the Craft element type.
+     *
+     * @return array The requested array of data.
      */
     public function getFavouritedElementIds(
         ?int $userId = null,
@@ -278,7 +282,13 @@ class FavouriteService extends Component
     }
 
     /**
-     * Get all favourite items for a user
+     * Returns favourite item elements for a user and optional filters.
+     *
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param ?int $collectionId The ID of the collection element.
+     * @param ?string $elementType The fully qualified class name of the Craft element type.
+     *
+     * @return array The requested array of data.
      */
     public function getFavourites(
         ?int $userId = null,
@@ -308,7 +318,11 @@ class FavouriteService extends Component
     }
 
     /**
-     * Get or create a default collection for a user
+     * Returns a default collection for the user, creating one if necessary.
+     *
+     * @param int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     *
+     * @return mixed The default collection, or false when creation fails.
      */
     public function getOrCreateDefaultCollection(int $userId)
     {
@@ -336,7 +350,12 @@ class FavouriteService extends Component
     }
 
     /**
-     * Move a favourite to another collection
+     * Moves a favourite item into another collection.
+     *
+     * @param int $favouriteId The ID of the favourite item element.
+     * @param int $newCollectionId The ID of the collection the favourite should move into.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function moveFavourite(int $favouriteId, int $newCollectionId): bool
     {
@@ -370,7 +389,12 @@ class FavouriteService extends Component
     }
 
     /**
-     * Get count of favourites for a user
+     * Counts favourite items for a user and optional collection.
+     *
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param ?int $collectionId The ID of the collection element.
+     *
+     * @return int The requested integer value.
      */
     public function getFavouriteCount(
         ?int $userId = null,
@@ -395,11 +419,9 @@ class FavouriteService extends Component
     }
 
     /**
-     * Get current user ID or null
+     * Returns the current user ID without throwing for guests.
      *
-     * Helper method to safely retrieve the current logged-in user's ID.
-     *
-     * @return int|null The user ID if logged in, null otherwise
+     * @return ?int The requested integer value, or null when none exists.
      */
     protected function getCurrentUserId(): ?int
     {
@@ -408,18 +430,14 @@ class FavouriteService extends Component
     }
 
     /**
-     * Toggle favourite status (add if not exists, remove if exists)
+     * Adds a favourite when absent or removes it when present.
      *
-     * This is the main method used by the frontend toggle functionality. It handles
-     * the complete toggle logic including duplicate prevention, hard deletion, and
-     * fallback SQL deletion if element deletion fails. Uses direct database queries
-     * for reliability and to prevent race conditions during rapid clicking.
+     * @param int $elementId The ID of the Craft element being favourited or checked.
+     * @param string $elementType The fully qualified class name of the Craft element type.
+     * @param int $collectionId The ID of the collection element.
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
      *
-     * @param int $elementId The ID of the element to toggle
-     * @param string $elementType The fully qualified class name of the element type
-     * @param int $collectionId The collection ID where the favourite should be toggled
-     * @param int|null $userId The user ID (defaults to current logged-in user)
-     * @return array Response array with 'success', 'action' (added/removed), and relevant IDs
+     * @return array A result array with success, action, IDs, or error information.
      */
     public function toggleFavourite(
         int $elementId,
@@ -486,25 +504,14 @@ class FavouriteService extends Component
     }
 
     /**
-     * Get elements with their favourite status for a user
+     * Returns element data with favourite state for a collection.
      *
-     * Retrieves a list of elements of the specified type with additional information about
-     * whether each element is favourited by the user in the given collection. This is
-     * optimized for frontend display where we need both element data and favourite status.
-     * Uses direct database queries for favourite checking to ensure reliability.
+     * @param string $elementType The fully qualified class name of the Craft element type.
+     * @param int $collectionId The ID of the collection element.
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param int $limit Maximum number of elements to return.
      *
-     * @param string $elementType The fully qualified class name of the element type to fetch
-     * @param int $collectionId The collection ID to check favourite status against
-     * @param int|null $userId The user ID (defaults to current logged-in user, null for guest)
-     * @param int $limit Maximum number of elements to return (default 10)
-     * @return array Array of element data with favourite status, each containing:
-     *               - id: Element ID
-     *               - title: Element title
-     *               - url: Element URL
-     *               - type: Element class name (fully qualified)
-     *               - isFavourited: Boolean indicating if favourited
-     *               - favouriteId: The favourite item ID if favourited, null otherwise
-     *               - previewUrl: For assets, the URL for preview image
+     * @return array Element data rows with favourite status metadata.
      */
     public function getElementsWithFavouriteStatus(
         string $elementType,

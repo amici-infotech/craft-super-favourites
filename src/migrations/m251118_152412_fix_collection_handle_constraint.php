@@ -15,7 +15,9 @@ use craft\db\Migration;
 class m251118_152412_fix_collection_handle_constraint extends Migration
 {
     /**
-     * @inheritdoc
+     * Runs the migration upgrade steps.
+     *
+     * @return bool True when the migration completes successfully.
      */
     public function safeUp(): bool
     {
@@ -60,7 +62,9 @@ class m251118_152412_fix_collection_handle_constraint extends Migration
     }
 
     /**
-     * @inheritdoc
+     * Runs the migration rollback steps.
+     *
+     * @return bool True when the rollback completes successfully when the method returns a value.
      */
     public function safeDown(): bool
     {

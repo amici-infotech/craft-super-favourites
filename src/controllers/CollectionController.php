@@ -20,9 +20,11 @@ class CollectionController extends Controller
     protected array|bool|int $allowAnonymous = false;
 
     /**
-     * Collections index page
+     * Handles the index controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionIndex(): Response
     {
@@ -30,11 +32,14 @@ class CollectionController extends Controller
     }
 
     /**
-     * Edit collection page
+     * Handles the edit controller action.
      *
-     * @param int|null $collectionId
-     * @param Collection|null $collection
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @param ?int $collectionId The ID of the collection element.
+     * @param ?Collection $collection An existing collection passed back after validation, or null for a fresh load.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionEdit(?int $collectionId = null, ?Collection $collection = null): Response
     {
@@ -88,9 +93,11 @@ class CollectionController extends Controller
     }
 
     /**
-     * Save collection
+     * Handles the save controller action.
      *
-     * @return Response|null
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return ?Response The HTTP response Craft should send, or null to redisplay the model with errors.
      */
     public function actionSave(): ?Response
     {
@@ -214,9 +221,11 @@ class CollectionController extends Controller
     }
 
     /**
-     * Delete collection
+     * Handles the delete controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionDelete(): Response
     {
@@ -292,9 +301,11 @@ class CollectionController extends Controller
     }
 
     /**
-     * Set default collection
+     * Handles the set default controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionSetDefault(): Response
     {
@@ -315,9 +326,11 @@ class CollectionController extends Controller
     }
 
     /**
-     * Reorder collections
+     * Handles the reorder controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionReorder(): Response
     {

@@ -18,7 +18,11 @@ class FavouriteItemQuery extends ElementQuery
     public $sortOrder;
 
     /**
-     * Filter by user ID
+     * Runs the `userId()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function userId($value)
     {
@@ -27,7 +31,11 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
-     * Filter by collection ID
+     * Runs the `collectionId()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function collectionId($value)
     {
@@ -36,7 +44,11 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
-     * Filter by favourited element ID
+     * Runs the `elementId()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function elementId($value)
     {
@@ -45,7 +57,11 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
-     * Filter by favourited element type (the type of element that was favourited)
+     * Runs the `favouritedElementType()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function favouritedElementType($value)
     {
@@ -54,7 +70,11 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
-     * Order by sort order
+     * Runs the `sortOrder()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function sortOrder($value)
     {
@@ -63,11 +83,11 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
-     * Filter by the user who owns the favourites (the author)
-     * This is an alias for userId() that's more intuitive to use
+     * Runs the `author()` method for this plugin class.
      *
-     * @param mixed $value User element(s), user ID(s), or null
-     * @return static
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function author($value)
     {
@@ -90,11 +110,11 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
-     * Filter by the favourited element (what was favourited)
-     * This allows passing element instances instead of just IDs
+     * Runs the `favouritedElement()` method for this plugin class.
      *
-     * @param mixed $value Element(s), element ID(s), or null
-     * @return static
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function favouritedElement($value)
     {
@@ -117,7 +137,9 @@ class FavouriteItemQuery extends ElementQuery
     }
 
     /**
-     * @inheritdoc
+     * Joins plugin tables and applies custom filters before Craft runs the query.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     protected function beforePrepare(): bool
     {

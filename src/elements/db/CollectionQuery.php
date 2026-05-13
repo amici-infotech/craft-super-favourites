@@ -20,10 +20,11 @@ class CollectionQuery extends ElementQuery
     private $_userIdSet = false;
 
     /**
-     * Filter by user ID
+     * Runs the `userId()` method for this plugin class.
      *
-     * @param int|null $value User ID to filter by, or null for global collections
-     * @return static
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function userId($value)
     {
@@ -33,7 +34,11 @@ class CollectionQuery extends ElementQuery
     }
 
     /**
-     * Filter by collection name
+     * Runs the `name()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function name($value)
     {
@@ -42,7 +47,11 @@ class CollectionQuery extends ElementQuery
     }
 
     /**
-     * Filter by collection handle
+     * Runs the `handle()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function handle($value)
     {
@@ -51,7 +60,11 @@ class CollectionQuery extends ElementQuery
     }
 
     /**
-     * Filter by default status
+     * Runs the `isDefault()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function isDefault($value = true)
     {
@@ -60,7 +73,11 @@ class CollectionQuery extends ElementQuery
     }
 
     /**
-     * Order by sort order
+     * Runs the `sortOrder()` method for this plugin class.
+     *
+     * @param mixed $value Filter value accepted by Craft query parameter syntax.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function sortOrder($value)
     {
@@ -69,7 +86,9 @@ class CollectionQuery extends ElementQuery
     }
 
     /**
-     * @inheritdoc
+     * Joins plugin tables and applies custom filters before Craft runs the query.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     protected function beforePrepare(): bool
     {

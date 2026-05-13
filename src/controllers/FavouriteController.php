@@ -20,9 +20,11 @@ class FavouriteController extends Controller
     protected array|bool|int $allowAnonymous = ['get-elements', 'get-allowed-types'];
 
     /**
-     * Favourites index page (element index)
+     * Handles the index controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionIndex(): Response
     {
@@ -30,9 +32,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Get element select field HTML for a given element type (AJAX)
+     * Handles the get element select html controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionGetElementSelectHtml(): Response
     {
@@ -79,9 +83,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Get allowed element types for a collection (AJAX endpoint)
+     * Handles the get allowed types controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionGetAllowedTypes(): Response
     {
@@ -144,7 +150,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Get elements for a given element type (AJAX endpoint for frontend forms)
+     * Handles the get elements controller action.
+     *
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionGetElements(): Response
     {
@@ -184,11 +194,14 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Edit favourite item page
+     * Handles the edit controller action.
      *
-     * @param int|null $favouriteId
-     * @param FavouriteItem|null $favouriteItem
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @param ?int $favouriteId The ID of the favourite item element.
+     * @param mixed $favouriteItem An existing favourite item passed back after validation, or null for a fresh load.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionEdit(?int $favouriteId = null, $favouriteItem = null): Response
     {
@@ -258,9 +271,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Save favourite item
+     * Handles the save controller action.
      *
-     * @return Response|null
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return ?Response The HTTP response Craft should send, or null to redisplay the model with errors.
      */
     public function actionSave(): ?Response
     {
@@ -500,23 +515,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Add an element to favourites
+     * Handles the add controller action.
      *
-     * Handles both AJAX and form submissions. If validation fails, returns detailed
-     * field-level errors that can be displayed in the frontend.
+     * Request values are read from Craft's request object rather than method parameters.
      *
-     * Possible validation errors:
-     * - userId: Cannot be blank
-     * - collectionId: Cannot be blank
-     * - elementId: Cannot be blank
-     * - elementType: Cannot be blank, must be string (max 255 chars)
-     * - notes: Must be string
-     * - sortOrder: Must be integer
-     *
-     * For AJAX: Returns JSON with 'errors' object containing field-specific messages
-     * For forms: Flash message + redirects with 'favourite' variable containing errors
-     *
-     * @return Response
+     * @return Response The HTTP response Craft should send.
      */
     public function actionAdd(): Response
     {
@@ -587,12 +590,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Remove an element from favourites
+     * Handles the remove controller action.
      *
-     * Handles both AJAX requests (returns JSON) and standard form submissions (redirects).
-     * Uses Craft's response helpers for consistent handling.
+     * Request values are read from Craft's request object rather than method parameters.
      *
-     * @return Response
+     * @return Response The HTTP response Craft should send.
      */
     public function actionRemove(): Response
     {
@@ -625,12 +627,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Toggle favourite status (add if not exists, remove if exists)
+     * Handles the toggle controller action.
      *
-     * This is the primary action for the wishlist-style toggle functionality.
-     * Uses service method that returns structured result array with action details.
+     * Request values are read from Craft's request object rather than method parameters.
      *
-     * @return Response
+     * @return Response The HTTP response Craft should send.
      */
     public function actionToggle(): Response
     {
@@ -672,9 +673,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Check if an element is favourited
+     * Handles the check controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionCheck(): Response
     {
@@ -707,11 +710,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Move a favourite to another collection
+     * Handles the move controller action.
      *
-     * Uses Craft's response helpers for consistent handling.
+     * Request values are read from Craft's request object rather than method parameters.
      *
-     * @return Response
+     * @return Response The HTTP response Craft should send.
      */
     public function actionMove(): Response
     {
@@ -737,12 +740,11 @@ class FavouriteController extends Controller
     }
 
     /**
-     * Delete a favourite item
+     * Handles the delete controller action.
      *
-     * Includes permission checking to ensure only the owner or admin can delete.
-     * Uses Craft's response helpers for consistent handling.
+     * Request values are read from Craft's request object rather than method parameters.
      *
-     * @return Response
+     * @return Response The HTTP response Craft should send.
      */
     public function actionDelete(): Response
     {

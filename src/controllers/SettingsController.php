@@ -20,9 +20,11 @@ class SettingsController extends Controller
     protected array|bool|int $allowAnonymous = false;
 
     /**
-     * Settings index page - redirects to general settings
+     * Handles the index controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionIndex(): Response
     {
@@ -30,9 +32,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * General settings page
+     * Handles the general controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionGeneral(): Response
     {
@@ -47,9 +51,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * Collection field layout settings page
+     * Handles the collection fields controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionCollectionFields(): Response
     {
@@ -64,9 +70,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * Favourite item field layout settings page
+     * Handles the favourite fields controller action.
      *
-     * @return Response
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return Response The HTTP response Craft should send.
      */
     public function actionFavouriteFields(): Response
     {
@@ -81,9 +89,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * Save general settings
+     * Handles the save controller action.
      *
-     * @return Response|null
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return ?Response The HTTP response Craft should send, or null to redisplay the model with errors.
      */
     public function actionSave(): ?Response
     {
@@ -115,9 +125,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * Save collection field layout
+     * Handles the save collection field layout controller action.
      *
-     * @return Response|null
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return ?Response The HTTP response Craft should send, or null to redisplay the model with errors.
      */
     public function actionSaveCollectionFieldLayout(): ?Response
     {
@@ -149,9 +161,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * Save favourite item field layout
+     * Handles the save favourite field layout controller action.
      *
-     * @return Response|null
+     * Request values are read from Craft's request object rather than method parameters.
+     *
+     * @return ?Response The HTTP response Craft should send, or null to redisplay the model with errors.
      */
     public function actionSaveFavouriteFieldLayout(): ?Response
     {

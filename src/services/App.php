@@ -14,6 +14,11 @@ class App extends Component
     public $collection;
     public $settings;
 
+    /**
+     * Initializes the plugin/component and wires together its dependent services or registrations.
+     *
+     * @return void Nothing is returned.
+     */
     public function init(): void
     {
         parent::init();

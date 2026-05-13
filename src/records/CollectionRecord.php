@@ -19,7 +19,9 @@ use craft\records\User;
 class CollectionRecord extends ActiveRecord
 {
     /**
-     * @inheritdoc
+     * Returns the database table name used by this Active Record.
+     *
+     * @return string The requested string value.
      */
     public static function tableName(): string
     {
@@ -27,7 +29,9 @@ class CollectionRecord extends ActiveRecord
     }
 
     /**
-     * Define relations
+     * Returns the related user element, caching the lookup for this request.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getUser()
     {
@@ -35,7 +39,9 @@ class CollectionRecord extends ActiveRecord
     }
 
     /**
-     * Define validation rules
+     * Returns Yii validation rules for this Active Record.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function rules()
     {

@@ -30,6 +30,11 @@ use amici\SuperFavourite\elements\Collection;
  */
 class Install extends Migration
 {
+    /**
+     * Runs the migration upgrade steps.
+     *
+     * @return mixed True when the migration completes successfully.
+     */
     public function safeUp()
     {
         $this->createTables();
@@ -40,6 +45,11 @@ class Install extends Migration
         return true;
     }
 
+    /**
+     * Creates the plugin tables for collections and favourite items.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
+     */
     protected function createTables()
     {
         // Collections table - stores global and user-created lists/collections
@@ -73,6 +83,11 @@ class Install extends Migration
         ]);
     }
 
+    /**
+     * Adds database relationships between plugin tables and Craft tables.
+     *
+     * @return void Nothing is returned.
+     */
     public function addForeignKeys(): void
     {
         // Collections foreign keys
@@ -133,6 +148,11 @@ class Install extends Migration
         );
     }
 
+    /**
+     * Adds indexes used for uniqueness and common lookups.
+     *
+     * @return void Nothing is returned.
+     */
     public function createIndexes(): void
     {
         // Index for faster lookups by user
@@ -201,7 +221,9 @@ class Install extends Migration
     }
 
     /**
-     * Create the default global collection
+     * Creates the global default collection used as a fallback.
+     *
+     * @return void Nothing is returned.
      */
     protected function createDefaultCollection(): void
     {
@@ -219,6 +241,11 @@ class Install extends Migration
         }
     }
 
+    /**
+     * Runs the migration rollback steps.
+     *
+     * @return mixed True when the rollback completes successfully when the method returns a value.
+     */
     public function safeDown()
     {
         $db = Craft::$app->getDb();
@@ -251,7 +278,11 @@ class Install extends Migration
     }
 
     /**
-     * Delete element records from elements table
+     * Deletes Craft element rows for a plugin element type during uninstall cleanup.
+     *
+     * @param string $elementType The fully qualified class name of the Craft element type.
+     *
+     * @return void Nothing is returned.
      */
     private function _deleteElementRecords(string $elementType): void
     {

@@ -38,9 +38,9 @@ class Collection extends Element
     private $_itemCount;
 
     /**
-     * Check if this is a global collection
+     * Returns the is global value.
      *
-     * @return bool
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function getIsGlobal(): bool
     {
@@ -48,7 +48,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the singular display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function displayName(): string
     {
@@ -56,7 +58,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the lower-case singular display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function lowerDisplayName(): string
     {
@@ -64,7 +68,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the plural display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function pluralDisplayName(): string
     {
@@ -72,7 +78,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the lower-case plural display name Craft shows for this element type.
+     *
+     * @return string The requested string value.
      */
     public static function pluralLowerDisplayName(): string
     {
@@ -80,7 +88,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the reference handle Craft uses for this element type.
+     *
+     * @return ?string The requested string value, or null when none exists.
      */
     public static function refHandle(): ?string
     {
@@ -88,7 +98,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether changes should be tracked for this element type.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function trackChanges(): bool
     {
@@ -96,7 +108,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type stores content/custom field values.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasContent(): bool
     {
@@ -104,7 +118,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type has a title.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasTitles(): bool
     {
@@ -112,7 +128,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the configured field layout for this element type.
+     *
+     * @return ?\craft\models\FieldLayout The `?\craft\models\FieldLayout` value produced by this method.
      */
     public function getFieldLayout(): ?\craft\models\FieldLayout
     {
@@ -120,7 +138,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type has public URLs.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasUris(): bool
     {
@@ -128,7 +148,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type is localized per site.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function isLocalized(): bool
     {
@@ -136,7 +158,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element type supports statuses.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public static function hasStatuses(): bool
     {
@@ -144,7 +168,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Creates the custom query class for this element type.
+     *
+     * @return ElementQueryInterface A custom element query instance.
      */
     public static function find(): ElementQueryInterface
     {
@@ -152,7 +178,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Creates the condition model used by Craft element indexes.
+     *
+     * @return \craft\elements\conditions\ElementConditionInterface The condition object used by Craft element indexes.
      */
     public static function createCondition(): \craft\elements\conditions\ElementConditionInterface
     {
@@ -160,7 +188,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines sort options available in the element index.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineSortOptions(): array
     {
@@ -196,7 +226,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines sidebar sources available in the element index.
+     *
+     * @param string $context The element index context requesting sources.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineSources(string $context = null): array
     {
@@ -210,7 +244,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines bulk actions available in the element index.
+     *
+     * @param string $source The selected element index source, or null for general index setup.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineActions(string $source = null): array
     {
@@ -244,7 +282,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines optional table columns for the element index.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineTableAttributes(): array
     {
@@ -259,7 +299,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines default table columns for the element index.
+     *
+     * @param string $source The selected element index source, or null for general index setup.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineDefaultTableAttributes(string $source): array
     {
@@ -267,7 +311,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines attributes included in Craft element search.
+     *
+     * @return array The requested array of data.
      */
     protected static function defineSearchableAttributes(): array
     {
@@ -275,7 +321,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns this element's Control Panel edit URL.
+     *
+     * @return ?string The requested string value, or null when none exists.
      */
     public function getCpEditUrl(): ?string
     {
@@ -283,7 +331,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Returns the Control Panel edit URL Craft uses internally.
+     *
+     * @return ?string The requested string value, or null when none exists.
      */
     protected function cpEditUrl(): ?string
     {
@@ -291,9 +341,9 @@ class Collection extends Element
     }
 
     /**
-     * Get the URL for viewing this collection
+     * Returns the view URL for this element when Craft asks for one.
      *
-     * @return string|null
+     * @return ?string The requested string value, or null when none exists.
      */
     public function getUrl(): ?string
     {
@@ -303,7 +353,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Renders custom table-cell HTML for plugin-specific element attributes.
+     *
+     * @param string $attribute The table attribute key being rendered.
+     *
+     * @return string The requested string value.
      */
     protected function attributeHtml(string $attribute): string
     {
@@ -326,7 +380,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether this element can be deleted.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function getIsDeletable(): bool
     {
@@ -334,7 +390,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a user can save this element.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function canSave(User $user): bool
     {
@@ -342,7 +402,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a user can view this element.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function canView(User $user): bool
     {
@@ -350,7 +414,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a user can delete this element.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function canDelete(User $user): bool
     {
@@ -358,7 +426,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Validates deletion before Craft removes the element.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function beforeDelete(): bool
     {
@@ -392,7 +462,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a user can duplicate this element.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function canDuplicate(User $user): bool
     {
@@ -400,7 +474,9 @@ class Collection extends Element
     }
 
     /**
-     * Get the user who owns this collection
+     * Returns the related user element, caching the lookup for this request.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getUser()
     {
@@ -411,7 +487,9 @@ class Collection extends Element
     }
 
     /**
-     * Get the count of items in this collection
+     * Counts favourite items in this collection.
+     *
+     * @return int The requested integer value.
      */
     public function getItemCount(): int
     {
@@ -424,7 +502,9 @@ class Collection extends Element
     }
 
     /**
-     * Get all items in this collection
+     * Returns all favourite item elements in this collection.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getItems()
     {
@@ -434,10 +514,9 @@ class Collection extends Element
     }
 
     /**
-     * Get the default global collection
-     * Only one global collection can be default at a time
+     * Returns the default collection, or null if none exists.
      *
-     * @return Collection|null
+     * @return ?Collection The `?Collection` value produced by this method.
      */
     public static function getDefaultCollection(): ?Collection
     {
@@ -448,7 +527,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Normalizes data before Craft saves the element.
+     *
+     * @param bool $isNew Whether Craft is saving a new element instead of updating an existing one.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function beforeSave(bool $isNew): bool
     {
@@ -488,7 +571,11 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Writes element data to the plugin's custom record table after Craft saves it.
+     *
+     * @param bool $isNew Whether Craft is saving a new element instead of updating an existing one.
+     *
+     * @return void Nothing is returned.
      */
     public function afterSave(bool $isNew): void
     {
@@ -530,7 +617,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Normalizes database-backed values after Craft hydrates the element.
+     *
+     * @return void Nothing is returned.
      */
     public function afterFind(): void
     {
@@ -539,7 +628,9 @@ class Collection extends Element
     }
 
     /**
-     * Decode allowedElementTypes from database format to form format
+     * Converts stored allowed element type data into the form-friendly value.
+     *
+     * @return void Nothing is returned.
      */
     private function _decodeAllowedElementTypes(): void
     {
@@ -556,8 +647,11 @@ class Collection extends Element
     }
 
     /**
-     * Generate a unique handle from a name (similar to how Craft generates unique slugs)
-     * Automatically adds -1, -2, etc. if the handle already exists
+     * Generates a unique collection handle from a name or handle seed.
+     *
+     * @param string $name The collection name, or source text used to generate a handle.
+     *
+     * @return string The requested string value.
      */
     private function generateUniqueHandle(string $name): string
     {
@@ -582,7 +676,11 @@ class Collection extends Element
     }
 
     /**
-     * Check if a handle already exists for this user
+     * Checks whether a collection handle is already in use.
+     *
+     * @param string $handle The collection handle to save, filter by, or test for uniqueness.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     private function handleExists(string $handle): bool
     {
@@ -598,7 +696,9 @@ class Collection extends Element
     }
 
     /**
-     * @inheritdoc
+     * Defines validation rules for this model or element.
+     *
+     * @return array The requested array of data.
      */
     public function defineRules(): array
     {
@@ -619,7 +719,9 @@ class Collection extends Element
 
 
     /**
-     * Validate that the user hasn't exceeded the maximum number of collections
+     * Validates the configured maximum collections per user.
+     *
+     * @return void Nothing is returned.
      */
     public function validateMaxCollectionsPerUser(): void
     {

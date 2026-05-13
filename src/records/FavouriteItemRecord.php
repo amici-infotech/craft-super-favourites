@@ -19,7 +19,9 @@ use craft\records\Element;
 class FavouriteItemRecord extends ActiveRecord
 {
     /**
-     * @inheritdoc
+     * Returns the database table name used by this Active Record.
+     *
+     * @return string The requested string value.
      */
     public static function tableName(): string
     {
@@ -27,25 +29,39 @@ class FavouriteItemRecord extends ActiveRecord
     }
 
     /**
-     * Define relations
+     * Returns the related user element, caching the lookup for this request.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getUser()
     {
         return $this->hasOne(User::class, ['id' => 'userId']);
     }
 
+    /**
+     * Returns the related collection element, caching the lookup for this request.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
+     */
     public function getCollection()
     {
         return $this->hasOne(CollectionRecord::class, ['id' => 'collectionId']);
     }
 
+    /**
+     * Returns the element value.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
+     */
     public function getElement()
     {
         return $this->hasOne(Element::class, ['id' => 'elementId']);
     }
 
     /**
-     * Define validation rules
+     * Returns Yii validation rules for this Active Record.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function rules()
     {

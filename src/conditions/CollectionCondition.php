@@ -12,7 +12,9 @@ use amici\SuperFavourite\conditions\rules\CollectionUserConditionRule;
 class CollectionCondition extends ElementCondition
 {
     /**
-     * @inheritdoc
+     * Runs the `selectableConditionRules()` method for this plugin class.
+     *
+     * @return array The requested array of data.
      */
     protected function selectableConditionRules(): array
     {

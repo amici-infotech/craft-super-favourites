@@ -14,7 +14,9 @@ use amici\SuperFavourite\conditions\rules\FavouritedElementConditionRule;
 class FavouriteItemCondition extends ElementCondition
 {
     /**
-     * @inheritdoc
+     * Runs the `selectableConditionRules()` method for this plugin class.
+     *
+     * @return array The requested array of data.
      */
     protected function selectableConditionRules(): array
     {

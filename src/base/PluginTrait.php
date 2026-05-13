@@ -12,7 +12,9 @@ use amici\SuperFavourite\services\CollectionService;
 trait PluginTrait
 {
     /**
-     * Register plugin components
+     * Registers the plugin services as Yii components.
+     *
+     * @return void Nothing is returned.
      */
     private function _setPluginComponents(): void
     {
@@ -23,9 +25,9 @@ trait PluginTrait
     }
 
     /**
-     * Get the favourite service
+     * Returns the favourite service used for add/remove/query operations.
      *
-     * @return FavouriteService
+     * @return FavouriteService The `FavouriteService` value produced by this method.
      */
     public function getFavourite(): FavouriteService
     {
@@ -33,9 +35,9 @@ trait PluginTrait
     }
 
     /**
-     * Get the collection service
+     * Returns the related collection element, caching the lookup for this request.
      *
-     * @return CollectionService
+     * @return CollectionService The `CollectionService` value produced by this method.
      */
     public function getCollection(): CollectionService
     {

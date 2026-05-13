@@ -20,11 +20,12 @@ use amici\SuperFavourite\elements\db\FavouriteItemQuery;
 class SuperFavouriteVariable
 {
     /**
-     * Check if an element is favourited by the current user
+     * Checks whether a user has favourited an element.
      *
-     * @param int $elementId
-     * @param int|null $collectionId
-     * @return bool
+     * @param int $elementId The ID of the Craft element being favourited or checked.
+     * @param ?int $collectionId The ID of the collection element.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function isFavourited(int $elementId, ?int $collectionId = null): bool
     {
@@ -42,11 +43,12 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get all favourited element IDs for the current user
+     * Returns IDs for elements favourited by a user.
      *
-     * @param int|null $collectionId
-     * @param string|null $elementType
-     * @return array
+     * @param ?int $collectionId The ID of the collection element.
+     * @param ?string $elementType The fully qualified class name of the Craft element type.
+     *
+     * @return array The requested array of data.
      */
     public function getFavouritedElementIds(?int $collectionId = null, ?string $elementType = null): array
     {
@@ -64,11 +66,12 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get all favourite items for the current user
+     * Returns favourite item elements for a user and optional filters.
      *
-     * @param int|null $collectionId
-     * @param string|null $elementType
-     * @return array
+     * @param ?int $collectionId The ID of the collection element.
+     * @param ?string $elementType The fully qualified class name of the Craft element type.
+     *
+     * @return array The requested array of data.
      */
     public function getFavourites(?int $collectionId = null, ?string $elementType = null): array
     {
@@ -86,10 +89,11 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get count of favourites for the current user
+     * Counts favourite items for a user and optional collection.
      *
-     * @param int|null $collectionId
-     * @return int
+     * @param ?int $collectionId The ID of the collection element.
+     *
+     * @return int The requested integer value.
      */
     public function getFavouriteCount(?int $collectionId = null): int
     {
@@ -106,9 +110,9 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get all collections for the current user
+     * Returns the collections value.
      *
-     * @return array
+     * @return array The requested array of data.
      */
     public function getCollections(): array
     {
@@ -122,10 +126,11 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get a collection by handle for the current user
+     * Returns a collection by handle for a user.
      *
-     * @param string $handle
-     * @return Collection|null
+     * @param string $handle The collection handle to save, filter by, or test for uniqueness.
+     *
+     * @return ?Collection The `?Collection` value produced by this method.
      */
     public function getCollectionByHandle(string $handle): ?Collection
     {
@@ -139,9 +144,9 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get the default collection for the current user
+     * Returns the default collection, or null if none exists.
      *
-     * @return Collection|null
+     * @return ?Collection The `?Collection` value produced by this method.
      */
     public function getDefaultCollection(): ?Collection
     {
@@ -155,9 +160,9 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get collection count for the current user
+     * Counts collections for a user.
      *
-     * @return int
+     * @return int The requested integer value.
      */
     public function getCollectionCount(): int
     {
@@ -171,9 +176,9 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Query favourite items
+     * Creates a favourite item query for Twig templates.
      *
-     * @return \craft\elements\db\ElementQueryInterface
+     * @return mixed A favourite item query ready for template chaining.
      */
     public function favourites()
     {
@@ -181,9 +186,9 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Query collections
+     * Creates a collection query for Twig templates.
      *
-     * @return \craft\elements\db\ElementQueryInterface
+     * @return mixed A collection query ready for template chaining.
      */
     public function collections()
     {
@@ -191,9 +196,9 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Returns a favourite item query
+     * Creates a favourite item query for Twig templates.
      *
-     * @return FavouriteItemQuery
+     * @return mixed A favourite item query ready for template chaining.
      */
     public function favouriteItems()
     {
@@ -201,12 +206,9 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Get all available element types
+     * Returns element types that can be favourited.
      *
-     * Returns an array of element types with their display names
-     * Format: [['value' => 'craft\\elements\\Entry', 'label' => 'Entries'], ...]
-     *
-     * @return array
+     * @return array The requested array of data.
      */
     public function getAvailableElementTypes(): array
     {
@@ -258,11 +260,11 @@ class SuperFavouriteVariable
     }
 
     /**
-     * Create an element query for a given element type
-     * Returns the element query (::find()) so it can be enhanced from the template
+     * Creates an element query for a requested element type.
      *
-     * @param string $elementType The element type class name
-     * @return \craft\elements\db\ElementQuery|null
+     * @param string $elementType The fully qualified class name of the Craft element type.
+     *
+     * @return mixed An element query for the type, or null when invalid.
      */
     public function createElementQuery(string $elementType)
     {

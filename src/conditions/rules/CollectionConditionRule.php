@@ -18,7 +18,9 @@ use amici\SuperFavourite\elements\db\FavouriteItemQuery;
 class CollectionConditionRule extends BaseElementSelectConditionRule implements ElementConditionRuleInterface
 {
     /**
-     * @inheritdoc
+     * Returns the label shown for this condition rule.
+     *
+     * @return string The requested string value.
      */
     public function getLabel(): string
     {
@@ -26,7 +28,9 @@ class CollectionConditionRule extends BaseElementSelectConditionRule implements 
     }
 
     /**
-     * @inheritdoc
+     * Returns the element type that this select rule should target.
+     *
+     * @return string The requested string value.
      */
     protected function elementType(): string
     {
@@ -34,7 +38,9 @@ class CollectionConditionRule extends BaseElementSelectConditionRule implements 
     }
 
     /**
-     * @inheritdoc
+     * Tells Craft whether multiple selections are allowed for this rule.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     protected function allowMultiple(): bool
     {
@@ -42,7 +48,9 @@ class CollectionConditionRule extends BaseElementSelectConditionRule implements 
     }
 
     /**
-     * @inheritdoc
+     * Returns query params that this condition rule owns.
+     *
+     * @return array The requested array of data.
      */
     public function getExclusiveQueryParams(): array
     {
@@ -50,7 +58,11 @@ class CollectionConditionRule extends BaseElementSelectConditionRule implements 
     }
 
     /**
-     * @inheritdoc
+     * Applies this condition rule to an element query.
+     *
+     * @param ElementQueryInterface $query The Craft element query being modified or processed.
+     *
+     * @return void Nothing is returned.
      */
     public function modifyQuery(ElementQueryInterface $query): void
     {
@@ -59,7 +71,11 @@ class CollectionConditionRule extends BaseElementSelectConditionRule implements 
     }
 
     /**
-     * @inheritdoc
+     * Checks whether a loaded element matches this condition rule.
+     *
+     * @param ElementInterface $element The Craft element being checked or duplicated.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function matchElement(ElementInterface $element): bool
     {

@@ -16,7 +16,9 @@ use amici\SuperFavourite\elements\Collection;
 class DuplicateCollection extends ElementAction
 {
     /**
-     * @inheritdoc
+     * Returns the label for the element action trigger.
+     *
+     * @return string The requested string value.
      */
     public function getTriggerLabel(): string
     {
@@ -24,7 +26,9 @@ class DuplicateCollection extends ElementAction
     }
 
     /**
-     * @inheritdoc
+     * Registers JavaScript for the element action trigger.
+     *
+     * @return ?string The requested string value, or null when none exists.
      */
     public function getTriggerHtml(): ?string
     {
@@ -49,7 +53,11 @@ JS, [static::class]);
     }
 
     /**
-     * @inheritdoc
+     * Runs the element action for the selected query results.
+     *
+     * @param ElementQueryInterface $query The Craft element query being modified or processed.
+     *
+     * @return bool True if at least one selected collection was duplicated; false otherwise.
      */
     public function performAction(ElementQueryInterface $query): bool
     {
@@ -140,11 +148,11 @@ JS, [static::class]);
     }
 
     /**
-     * Generate a unique handle for the duplicated collection
-     * Uses Craft's naming convention (e.g., handle, handle1, handle2, etc.)
+     * Returns the unique handle value.
      *
-     * @param Collection $element The original element being duplicated
-     * @return string The unique handle
+     * @param Collection $element The Craft element being checked or duplicated.
+     *
+     * @return string The requested string value.
      */
     private function getUniqueHandle(Collection $element): string
     {
@@ -162,11 +170,12 @@ JS, [static::class]);
     }
 
     /**
-     * Check if a handle already exists for the given user
+     * Checks whether a collection handle is already in use.
      *
-     * @param string $handle The handle to check
-     * @param int|null $userId The user ID (null for global)
-     * @return bool Whether the handle exists
+     * @param string $handle The collection handle to save, filter by, or test for uniqueness.
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     private function handleExists(string $handle, ?int $userId): bool
     {

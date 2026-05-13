@@ -24,7 +24,9 @@ class Settings extends Model
     public int $maxFavouritesPerCollection = 0;
 
     /**
-     * @inheritdoc
+     * Defines validation rules for this model or element.
+     *
+     * @return array The requested array of data.
      */
     public function defineRules(): array
     {

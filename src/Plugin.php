@@ -86,7 +86,9 @@ class Plugin extends CraftPlugin
     // =========================================================================
 
     /**
-     * @inheritdoc
+     * Initializes the plugin/component and wires together its dependent services or registrations.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function init()
     {
@@ -128,7 +130,9 @@ class Plugin extends CraftPlugin
     // =========================================================================
 
     /**
-     * @inheritdoc
+     * Creates the settings model Craft uses for this plugin.
+     *
+     * @return ?Model The settings model, or null when unavailable.
      */
     protected function createSettingsModel(): ?Model
     {
@@ -136,7 +140,9 @@ class Plugin extends CraftPlugin
     }
 
     /**
-     * @inheritdoc
+     * Sends users from Craft's settings button to the plugin settings section.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getSettingsResponse(): mixed
     {
@@ -144,7 +150,9 @@ class Plugin extends CraftPlugin
     }
 
     /**
-     * @inheritdoc
+     * Builds the Control Panel navigation item and subnavigation links.
+     *
+     * @return ?array The requested array of data, or null when none exists.
      */
     public function getCpNavItem(): ?array
     {
@@ -174,7 +182,9 @@ class Plugin extends CraftPlugin
     // =========================================================================
 
     /**
-     * Register CP URL rules
+     * Registers Control Panel and action URL routes for the plugin.
+     *
+     * @return void Nothing is returned.
      */
     private function _registerRoutes(): void
     {
@@ -214,7 +224,9 @@ class Plugin extends CraftPlugin
     }
 
     /**
-     * Register template variables
+     * Registers the `craft.superFavourite` Twig variable.
+     *
+     * @return void Nothing is returned.
      */
     private function _registerVariables(): void
     {
@@ -230,7 +242,9 @@ class Plugin extends CraftPlugin
     }
 
     /**
-     * Register user permissions
+     * Registers permissions for managing favourites and collections.
+     *
+     * @return void Nothing is returned.
      */
     private function _registerPermissions(): void
     {

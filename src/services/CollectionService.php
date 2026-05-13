@@ -41,18 +41,15 @@ class CollectionService extends Component
      */
     const EVENT_AFTER_DELETE_COLLECTION = 'afterDeleteCollection';
     /**
-     * Create a new collection for a user
+     * Creates a new collection element.
      *
-     * Creates a new collection element with the specified properties. Collections can be
-     * user-specific or global (when userId is null). The handle is auto-generated if not provided.
-     * Triggers BEFORE and AFTER events for extensibility.
+     * @param int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     * @param string $name The collection name, or source text used to generate a handle.
+     * @param ?string $handle The collection handle to save, filter by, or test for uniqueness.
+     * @param ?string $description Optional collection description text.
+     * @param bool $isDefault Whether the collection should be the default collection.
      *
-     * @param int $userId The user ID (null for global collections)
-     * @param string $name The collection name (required)
-     * @param string|null $handle URL-friendly handle (auto-generated from name if null)
-     * @param string|null $description Optional description text
-     * @param bool $isDefault Whether this should be the default collection for the user
-     * @return Collection|false The created collection, or false on failure
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function createCollection(
         int $userId,
@@ -92,11 +89,12 @@ class CollectionService extends Component
     }
 
     /**
-     * Update a collection
+     * Updates a collection with supplied attributes.
      *
-     * @param int $collectionId The collection ID
-     * @param array $attributes Attributes to update
-     * @return Collection|false
+     * @param int $collectionId The ID of the collection element.
+     * @param array $attributes Key/value attributes to apply to the collection.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function updateCollection(int $collectionId, array $attributes)
     {
@@ -120,15 +118,12 @@ class CollectionService extends Component
     }
 
     /**
-     * Delete a collection and optionally its items
+     * Deletes a collection and optionally its favourite items.
      *
-     * Removes a collection from the system. Can optionally delete all favourite items
-     * within the collection as a cascading operation. Triggers BEFORE and AFTER events.
-     * The BEFORE event can prevent deletion by setting $event->isValid = false.
+     * @param int $collectionId The ID of the collection element.
+     * @param bool $deleteItems Whether favourite items in the collection should also be deleted.
      *
-     * @param int $collectionId The ID of the collection to delete
-     * @param bool $deleteItems If true, also deletes all favourite items in this collection
-     * @return bool True if deletion was successful, false otherwise
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function deleteCollection(int $collectionId, bool $deleteItems = false): bool
     {
@@ -173,17 +168,11 @@ class CollectionService extends Component
     }
 
     /**
-     * Get all collections for a user (global + user-specific)
+     * Returns global and user-owned collections visible to a user.
      *
-     * Returns collections accessible by the specified user, including both:
-     * - Global collections (userId = null) that are available to all users
-     * - User-specific collections (userId = specified user)
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
      *
-     * Results are ordered with global collections first, then user collections,
-     * and within each group by sortOrder.
-     *
-     * @param int|null $userId The user ID (defaults to current logged-in user)
-     * @return array Array of Collection elements
+     * @return array The requested array of data.
      */
     public function getUserCollections(?int $userId = null): array
     {
@@ -209,7 +198,12 @@ class CollectionService extends Component
     }
 
     /**
-     * Get a collection by handle for a user
+     * Returns a collection by handle for a user.
+     *
+     * @param string $handle The collection handle to save, filter by, or test for uniqueness.
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getCollectionByHandle(string $handle, ?int $userId = null)
     {
@@ -228,7 +222,11 @@ class CollectionService extends Component
     }
 
     /**
-     * Get the default collection for a user
+     * Returns the default collection, or null if none exists.
+     *
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     *
+     * @return mixed The Craft hook response or untyped value produced by this method.
      */
     public function getDefaultCollection(?int $userId = null)
     {
@@ -247,7 +245,11 @@ class CollectionService extends Component
     }
 
     /**
-     * Set a collection as default for a user
+     * Marks a collection as default and clears competing defaults.
+     *
+     * @param int $collectionId The ID of the collection element.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function setDefaultCollection(int $collectionId): bool
     {
@@ -273,7 +275,11 @@ class CollectionService extends Component
     }
 
     /**
-     * Get collection count for a user
+     * Counts collections for a user.
+     *
+     * @param ?int $userId The user ID; null usually means use the current user or global scope depending on the method.
+     *
+     * @return int The requested integer value.
      */
     public function getCollectionCount(?int $userId = null): int
     {
@@ -291,10 +297,11 @@ class CollectionService extends Component
     }
 
     /**
-     * Reorder collections
+     * Persists the requested collection order.
      *
-     * @param array $collectionIds Array of collection IDs in desired order
-     * @return bool
+     * @param array $collectionIds Collection IDs in the desired display order.
+     *
+     * @return bool True on success or when the condition matches; false otherwise.
      */
     public function reorderCollections(array $collectionIds): bool
     {
