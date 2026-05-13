@@ -40,7 +40,7 @@ Fields:
 - `description` - optional.
 - `isDefault` - optional boolean.
 - `userId` - optional; empty means global collection.
-- `allowedElementTypes` or `allowedElementTypes[]` - optional.
+- `allowedElementTypes[]` - optional; omit all values to allow every element type.
 - `fields[...]` - optional custom field values.
 
 Permission:

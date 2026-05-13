@@ -8,9 +8,23 @@ Frontend collection saving uses the same action as the Control Panel and current
 
 Use one form for create, edit, global collections, user collections, default collections, allowed element types, and collection custom fields. The comments in the example explain what each field changes.
 
+The `_self.fieldErrors()` macro renders validation errors from the model Craft returns after a failed submit. Use the returned `collection` variable when it exists so submitted values and errors are preserved.
+
 ```twig
+{% macro fieldErrors(model, field) %}
+    {% set errors = model ? model.getErrors(field) : [] %}
+    {% if errors|length %}
+        <ul class="errors">
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endmacro %}
+
 {% set collection = collection ?? null %}
 {% set elementTypes = craft.superFavourite.getAvailableElementTypes() %}
+{% set isDefault = collection ? collection.isDefault : false %}
 
 <form method="post" accept-charset="UTF-8">
     {{ csrfInput() }}
@@ -24,28 +38,41 @@ Use one form for create, edit, global collections, user collections, default col
 
     {# Required. If handle is empty, the plugin generates a handle from this name. #}
     <input type="text" name="name" value="{{ collection ? collection.name : '' }}" required>
+    {{ _self.fieldErrors(collection, 'name') }}
 
     {# Optional. Leave empty on create if you want the plugin to generate it. #}
     <input type="text" name="handle" value="{{ collection ? collection.handle : '' }}">
+    {{ _self.fieldErrors(collection, 'handle') }}
 
     {# Optional plain collection description. #}
     <textarea name="description">{{ collection ? collection.description : '' }}</textarea>
+    {{ _self.fieldErrors(collection, 'description') }}
 
-    {# User collection: set this to currentUser.id or another user ID. #}
-    {# Global collection: leave this empty or omit it. #}
-    {# Default collection: this will be cleared by the plugin because default collections are global. #}
-    <input type="hidden" name="userId" value="{{ makeGlobal ? '' : currentUser.id }}">
+    {# User collection: set this to a user ID, usually currentUser.id. #}
+    {# Global collection: leave this field empty. #}
+    {# Default collection: the plugin clears userId because default collections are global. #}
+    <label>
+        Owner user ID
+        <input
+            type="number"
+            name="userId"
+            value="{{ collection and collection.userId ? collection.userId : (currentUser ? currentUser.id : '') }}"
+        >
+    </label>
+    {{ _self.fieldErrors(collection, 'userId') }}
 
-    {# Default collection: send 1. Normal collection: send 0 or omit the field. #}
-    {# A default collection is global and is used when favourites are saved without collectionId. #}
-    <input type="hidden" name="isDefault" value="{{ makeDefault ? '1' : '0' }}">
+    {# Default collection: check this box. Normal collection: leave unchecked. #}
+    {# A default collection is used when favourites are saved without collectionId. #}
+    <input type="hidden" name="isDefault" value="0">
+    <label>
+        <input type="checkbox" name="isDefault" value="1" {{ isDefault ? 'checked' }}>
+        Use as default collection
+    </label>
+    {{ _self.fieldErrors(collection, 'isDefault') }}
 
     {# Allowed element types can be rendered dynamically from the plugin. #}
-    {# If "all" is selected, do not submit individual allowedElementTypes[] values. #}
-    <label>
-        <input type="checkbox" name="allowedElementTypes" value="*" checked>
-        Allow all element types
-    </label>
+    {# To allow all element types, submit no allowedElementTypes[] checkboxes. #}
+    {# If any allowedElementTypes[] values are submitted, only those types are allowed. #}
 
     {% for elementType in elementTypes %}
         <label>
@@ -57,6 +84,7 @@ Use one form for create, edit, global collections, user collections, default col
             {{ elementType.label }}
         </label>
     {% endfor %}
+    {{ _self.fieldErrors(collection, 'allowedElementTypes') }}
 
     {# Collection custom fields use the fields namespace. #}
     <textarea name="fields[shortIntro]">{{ collection ? collection.shortIntro : '' }}</textarea>
@@ -84,7 +112,7 @@ Use `craft.superFavourite.getAvailableElementTypes()` when you want the form to 
 {% endfor %}
 ```
 
-If your UI has an "All Element Types" checkbox, disable or ignore the individual checkboxes while all is selected. Otherwise the form can submit both `*` and specific element types, which makes the user's intent unclear.
+To allow all element types, submit no `allowedElementTypes[]` values. If your UI has an "All Element Types" checkbox, use JavaScript to uncheck/disable the individual checkboxes and make sure no `allowedElementTypes[]` inputs are submitted.
 
 ## Delete a Collection
 
@@ -131,6 +159,7 @@ Use `favourite/add` for a simple add button. Use `favourite/save` when you need 
 
     {# Optional note field built into the plugin. #}
     <textarea name="notes">{{ favourite is defined and favourite ? favourite.notes : '' }}</textarea>
+    {{ _self.fieldErrors(favourite ?? null, 'notes') }}
 
     {# Favourite item custom fields also use the fields namespace. #}
     <select name="fields[priority]">
