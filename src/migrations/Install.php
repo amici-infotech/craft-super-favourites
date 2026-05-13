@@ -233,7 +233,7 @@ class Install extends Migration
         $collection->description = 'Default collection for favourites';
         $collection->isDefault = true;
         $collection->userId = null; // Global collection
-        $collection->allowedElementTypes = null; // Allow all element types
+        $collection->allowedElementTypes = []; // Allow all element types
         $collection->sortOrder = 0;
 
         if (!Craft::$app->getElements()->saveElement($collection)) {

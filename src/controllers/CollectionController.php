@@ -153,37 +153,18 @@ class CollectionController extends Controller
             $collection->userId = null;
         }
 
-        // Get allowed element types from checkboxes
-        // Note: checkboxSelectField sends both 'allowedElementTypes' (empty string)
-        // and 'allowedElementTypes[]' (array of values)
+        // Get allowed element types from checkboxes.
+        // Empty array means all element types are allowed.
         $allowedElementTypes = $request->getBodyParam('allowedElementTypes');
 
-        // If it's an empty string or not set, default to "All" (null)
-        if ($allowedElementTypes === '' || $allowedElementTypes === null) {
-            $collection->allowedElementTypes = null;
-        } elseif (is_array($allowedElementTypes)) {
-            // Filter out empty values from the array
+        if (is_array($allowedElementTypes)) {
             $allowedElementTypes = array_filter($allowedElementTypes, function($val) {
-                return !empty($val);
+                return !empty($val) && $val !== '*';
             });
 
-            // Check if "All" is selected (value = '*')
-            if (empty($allowedElementTypes)) {
-                // Empty array after filtering = no selection = All
-                $collection->allowedElementTypes = null;
-            } elseif (in_array('*', $allowedElementTypes)) {
-                // "All" explicitly selected
-                $collection->allowedElementTypes = null;
-            } else {
-                // Specific types selected - re-index array
-                $collection->allowedElementTypes = array_values($allowedElementTypes);
-            }
-        } elseif ($allowedElementTypes === '*') {
-            // Single value '*' means all
-            $collection->allowedElementTypes = null;
+            $collection->allowedElementTypes = array_values($allowedElementTypes);
         } else {
-            // Fallback: allow all
-            $collection->allowedElementTypes = null;
+            $collection->allowedElementTypes = [];
         }
 
         // Set custom field values from the 'fields' namespace

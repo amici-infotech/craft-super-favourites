@@ -26,7 +26,7 @@ Main fields:
 - `description` - optional explanation.
 - `userId` - owner user ID, or `null` for global collections.
 - `isDefault` - marks the default fallback collection.
-- `allowedElementTypes` - allowed element classes, or all element types when empty/null.
+- `allowedElementTypes` - array of allowed element classes. Empty array means all element types.
 - `sortOrder` - optional manual ordering value.
 
 ## Global Collections
@@ -110,7 +110,7 @@ In frontend code, render options dynamically with `craft.superFavourite.getAvail
 {% endfor %}
 ```
 
-Always save through the plugin action/service. The controller checks the collection's allowed element types before saving a favourite.
+Always save through the plugin action/service. The controller checks the collection's allowed element types before saving a favourite. In templates and PHP, `collection.allowedElementTypes` is already an array; do not call `json_decode`.
 
 ## Custom Fields on Collections
 

@@ -31,10 +31,10 @@ class Collection extends Element
     public ?string $handle = null;
     public ?string $description = null;
     public bool $isDefault = false;
-    public array|string|null $allowedElementTypes = null;
     public int $sortOrder = 0;
     public ?int $fieldLayoutId = null;
 
+    private array $_allowedElementTypes = [];
     private User|false|null $_user = null;
     private ?int $_itemCount = null;
 
@@ -46,6 +46,28 @@ class Collection extends Element
     public function getIsGlobal(): bool
     {
         return $this->userId === null;
+    }
+
+    /**
+     * Returns allowed element types as an array for templates and PHP code.
+     *
+     * @return array Element type class names. Empty array means all element types are allowed.
+     */
+    public function getAllowedElementTypes(): array
+    {
+        return $this->_allowedElementTypes;
+    }
+
+    /**
+     * Normalizes assigned allowed element type data immediately.
+     *
+     * @param mixed $value Posted array, stored JSON string, single class name, "*" sentinel, or null.
+     *
+     * @return void Nothing is returned.
+     */
+    public function setAllowedElementTypes(mixed $value): void
+    {
+        $this->_allowedElementTypes = $this->normalizeAllowedElementTypes($value);
     }
 
     /**
@@ -596,14 +618,10 @@ class Collection extends Element
         $record->description = $this->description;
         $record->isDefault = (bool)$this->isDefault; // Explicit boolean cast
 
-        // Convert allowedElementTypes to JSON for storage in database
-        if (is_array($this->allowedElementTypes)) {
-            $record->allowedElementTypes = json_encode($this->allowedElementTypes);
-        } elseif ($this->allowedElementTypes === '*' || $this->allowedElementTypes === null) {
-            $record->allowedElementTypes = null; // Store null for "All"
-        } else {
-            $record->allowedElementTypes = $this->allowedElementTypes; // Already a string
-        }
+        // Keep the element API array-based, but store selected types as JSON.
+        // An empty array means "all element types" and is stored as null.
+        $allowedElementTypes = $this->getAllowedElementTypes();
+        $record->allowedElementTypes = empty($allowedElementTypes) ? null : json_encode($allowedElementTypes);
 
         $record->sortOrder = $this->sortOrder;
 
@@ -611,10 +629,8 @@ class Collection extends Element
 
         parent::afterSave($isNew);
 
-        // After saving to the record, decode back for the element instance
-        // This ensures the element has the correct value if it's used again in the same request
-        $this->allowedElementTypes = $record->allowedElementTypes;
-        $this->_decodeAllowedElementTypes();
+        // Keep this element instance array-based for the rest of the request.
+        $this->setAllowedElementTypes($allowedElementTypes);
     }
 
     /**
@@ -625,26 +641,34 @@ class Collection extends Element
     public function afterFind(): void
     {
         parent::afterFind();
-        $this->_decodeAllowedElementTypes();
+        $this->setAllowedElementTypes($this->allowedElementTypes ?? []);
     }
 
     /**
-     * Converts stored allowed element type data into the form-friendly value.
+     * Converts stored or posted allowed element type data into the public array shape.
      *
-     * @return void Nothing is returned.
+     * @param mixed $value The stored JSON string, posted array, single class name, "*" sentinel, or null.
+     *
+     * @return array Element type class names. Empty array means all element types are allowed.
      */
-    private function _decodeAllowedElementTypes(): void
+    private function normalizeAllowedElementTypes(mixed $value): array
     {
-        // Decode JSON allowedElementTypes back to array or '*' for display
-        if (is_string($this->allowedElementTypes) && !empty($this->allowedElementTypes)) {
-            $decoded = json_decode($this->allowedElementTypes, true);
-            if ($decoded !== null) {
-                $this->allowedElementTypes = $decoded;
-            }
-        } elseif ($this->allowedElementTypes === null || $this->allowedElementTypes === '') {
-            // null/empty in database = "All" in the form
-            $this->allowedElementTypes = '*';
+        if ($value === null || $value === '' || $value === '*') {
+            return [];
         }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value = is_array($decoded) ? $decoded : [$value];
+        }
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $types = array_values(array_filter($value, fn($type) => is_string($type) && $type !== '' && $type !== '*'));
+
+        return in_array('*', $value, true) ? [] : $types;
     }
 
     /**

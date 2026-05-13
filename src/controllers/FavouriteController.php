@@ -123,13 +123,7 @@ class FavouriteController extends Controller
             $availableTypes[$type['value']] = $type['label'];
         }
 
-        if ($allowedTypes === '*' || $allowedTypes === null || $allowedTypes === '' ||
-            (is_array($allowedTypes) && (empty($allowedTypes) || in_array('*', $allowedTypes)))) {
-            $allowedTypes = array_keys($availableTypes);
-        } elseif (is_string($allowedTypes)) {
-            $decoded = json_decode($allowedTypes, true);
-            $allowedTypes = is_array($decoded) ? $decoded : [$allowedTypes];
-        } elseif (!is_array($allowedTypes)) {
+        if (empty($allowedTypes)) {
             $allowedTypes = array_keys($availableTypes);
         }
 
@@ -428,13 +422,8 @@ class FavouriteController extends Controller
         // Validation 2: Check allowed element types
         $allowedElementTypes = $collection->allowedElementTypes;
 
-        // Decode if it's a JSON string
-        if (is_string($allowedElementTypes) && !empty($allowedElementTypes)) {
-            $allowedElementTypes = json_decode($allowedElementTypes, true);
-        }
-
-        // If allowedElementTypes is set and not '*' (all), validate the element type
-        if (!empty($allowedElementTypes) && !in_array('*', $allowedElementTypes)) {
+        // Empty array means all element types are allowed.
+        if (!empty($allowedElementTypes)) {
             if (!in_array($favouriteItem->elementType, $allowedElementTypes)) {
                 // Get element type display name for better error message
                 $elementTypeLabel = $favouriteItem->elementType;

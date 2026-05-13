@@ -161,7 +161,7 @@ $collection->isDefault = false; // true = global default fallback collection
 $collection->allowedElementTypes = [
     \craft\elements\Entry::class,
     \craft\elements\Asset::class,
-]; // null = all element types
+]; // [] = all element types
 $collection->setFieldValue('shortIntro', 'Optional custom field value');
 
 Craft::$app->getElements()->saveElement($collection);

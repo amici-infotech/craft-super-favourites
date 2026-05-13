@@ -83,7 +83,7 @@
             id: 'allowedElementTypes',
             name: 'allowedElementTypes',
             options: elementTypeOptions,
-            values: collection.allowedElementTypes|length ? collection.allowedElementTypes|json_decode|raw : '*',
+            values: collection.allowedElementTypes,
             showAllOption: true,
             errors: collection.getErrors('allowedElementTypes')
         }) }}
