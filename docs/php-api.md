@@ -28,7 +28,7 @@ $favourite = Plugin::getInstance()->favourite->addFavourite(
 
 Returns the created/existing `FavouriteItem`, or `false`.
 
-If `userId` is `null`, the current logged-in user is used. If `collectionId` is `null`, the service tries to get or create a default collection for the user.
+If `userId` is `null`, the current logged-in user is used. `collectionId` is required; the service returns `false` when it is omitted, invalid, owned by another user, or disallows the element type.
 
 ### Remove a Favourite
 

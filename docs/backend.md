@@ -39,7 +39,7 @@ Use this screen to:
 4. Set ownership and default behavior:
    - Leave **Assign to User** empty for a global collection.
    - Choose a user for a user-owned collection.
-   - Enable **Default Collection** when it should be the fallback for favourites saved without `collectionId`.
+   - Enable **Default Collection** when you want a shared collection that favourite forms can explicitly target.
 5. Choose allowed element types, or leave all enabled.
 6. Fill any collection custom fields.
 7. Save.
@@ -94,7 +94,7 @@ Use this screen to:
 3. Choose an **Element Type**.
 4. Select the actual element.
 5. Select the user.
-6. Select the collection, or leave empty to use the default collection.
+6. Select the collection.
 7. Add notes or custom field values.
 8. Save.
 

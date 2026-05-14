@@ -2,7 +2,7 @@
 
 All frontend forms need CSRF protection. Most favourite actions require a logged-in user. Use `actionInput()` for normal Twig forms, or post to `/actions/...` with a CSRF token for JavaScript requests.
 
-Favourite save, move, and delete failures return the failed `favouriteItem`/`favourite` model with errors attached for normal form submissions, and JSON errors for AJAX requests.
+Favourite save, add, move, and delete failures return the failed `favourite` model with errors attached for normal form submissions, and JSON errors plus a `favourite` payload for AJAX requests.
 
 ## Favourite Save Form
 
@@ -20,9 +20,10 @@ Use `favourite/add` for a simple add button. Use `favourite/save` when you need 
         <input type="hidden" name="id" value="{{ favourite.id }}">
     {% endif %}
 
+    {# The plugin derives the element type from this element ID. #}
     <input type="hidden" name="elementId" value="{{ entry.id }}">
-    <input type="hidden" name="elementType" value="{{ className(entry) }}">
 
+    {# Required. Favourites are always saved into an explicit collection. #}
     <input type="hidden" name="collectionId" value="{{ collection.id }}">
 
     <textarea name="notes">{{ favourite is defined and favourite ? favourite.notes : '' }}</textarea>
@@ -72,14 +73,13 @@ Delete by favourite item ID when you are listing favourite items:
 
 ## Toggle a Favourite With JavaScript
 
-The toggle action requires `elementId`, `elementType`, and `collectionId`.
+The toggle action requires `elementId` and `collectionId`. The plugin derives the element type from the element ID.
 
 ```twig
 <button
     type="button"
     data-favourite-toggle
     data-element-id="{{ entry.id }}"
-    data-element-type="{{ className(entry) }}"
     data-collection-id="{{ collection.id }}"
 >
     Toggle favourite
@@ -91,7 +91,6 @@ document.querySelector('[data-favourite-toggle]').addEventListener('click', asyn
     const formData = new FormData();
 
     formData.append('elementId', button.dataset.elementId);
-    formData.append('elementType', button.dataset.elementType);
     formData.append('collectionId', button.dataset.collectionId);
     formData.append('{{ craft.app.config.general.csrfTokenName }}', '{{ craft.app.request.csrfToken }}');
 

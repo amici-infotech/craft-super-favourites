@@ -120,8 +120,8 @@ Method: `POST`
 Fields:
 
 - `elementId` - required.
-- `elementType` - required class name.
-- `collectionId` - optional; default collection is used when empty.
+- `elementType` - optional class name; derived from `elementId` when omitted.
+- `collectionId` - required valid collection ID.
 - `notes` - optional.
 
 Requires login.
@@ -139,10 +139,10 @@ Method: `POST`
 Fields:
 
 - `id` - optional; include when editing the favourite item element.
-- `elementType` - required.
+- `elementType` - optional; derived from `elementId` when omitted.
 - `elementId` - required. CP element select may submit an array.
 - `userId` - optional for frontend; current user is used when empty.
-- `collectionId` - optional; default collection is used when empty.
+- `collectionId` - required valid collection ID.
 - `notes` - optional.
 - `fields[...]` - optional custom field values.
 
@@ -163,7 +163,7 @@ Method: `POST`
 Fields:
 
 - `elementId` - required.
-- `collectionId` - optional.
+- `collectionId` - optional. If omitted, matching favourites for the element can be removed across collections.
 
 Requires login.
 
@@ -182,7 +182,7 @@ Method: `POST`
 Fields:
 
 - `elementId` - required.
-- `elementType` - required.
+- `elementType` - optional; derived from `elementId` when omitted.
 - `collectionId` - required.
 
 Requires login.
@@ -274,7 +274,7 @@ super-favourite/favourite/get-elements
 
 Fields:
 
-- `elementType` - required.
+- `elementType` - optional; derived from `elementId` when omitted.
 - `collectionId` - required.
 - `limit` - optional, defaults to `10`.
 

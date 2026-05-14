@@ -62,5 +62,5 @@ Field layout screens support:
 
 The install migration creates a global collection named `Default` with handle `default`.
 
-If a favourite is saved without `collectionId`, the plugin tries to use the default collection. In frontend forms, it is still best to pass a `collectionId` when the UI is collection-specific so users know where the item will go.
+Favourite save/add forms must submit a valid `collectionId`. Use the default collection explicitly when that is where the favourite should be saved.
 

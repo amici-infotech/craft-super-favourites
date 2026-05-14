@@ -58,7 +58,7 @@ class FavouriteService extends Component
      * Finds an existing favourite with the same user, collection, and element.
      *
      * @param int $userId The user ID; null usually means use the current user or global scope depending on the method.
-     * @param ?int $collectionId The ID of the collection element.
+     * @param ?int $collectionId The ID of the collection element. Required; null returns false.
      * @param int $elementId The ID of the Craft element being favourited or checked.
      *
      * @return ?FavouriteItem The existing favourite item, or null when no duplicate exists.
@@ -99,13 +99,18 @@ class FavouriteService extends Component
             $userId = $currentUser->id;
         }
 
-        // Get or create default collection if no collection specified
         if ($collectionId === null) {
-            $collection = $this->getOrCreateDefaultCollection($userId);
-            if (!$collection) {
-                return false;
-            }
-            $collectionId = $collection->id;
+            return false;
+        }
+
+        $collection = Collection::find()->id($collectionId)->one();
+        if (!$collection || ($collection->userId !== null && $collection->userId !== $userId)) {
+            return false;
+        }
+
+        $allowedElementTypes = $collection->allowedElementTypes;
+        if (!empty($allowedElementTypes) && !in_array($elementType, $allowedElementTypes, true)) {
+            return false;
         }
 
         // Check for existing favourite to prevent duplicates

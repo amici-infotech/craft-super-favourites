@@ -1,16 +1,14 @@
 # Troubleshooting
 
-## "No default collection found"
+## "Please select a collection"
 
-This happens when a favourite is saved without `collectionId` and no default collection exists.
+This happens when a favourite save/add request does not include a valid `collectionId`.
 
 Fix:
 
-1. Create a global collection.
-2. Enable **Default Collection**.
-3. Save.
-
-Or pass a specific `collectionId` in the form/action request.
+1. Create or choose a collection.
+2. Include that collection's ID in the form/action request.
+3. Make sure the current user can add favourites to that collection.
 
 ## "You do not have permission to add items to this collection"
 
@@ -60,18 +58,7 @@ Deleted collections do not reserve their handles. If a soft-deleted collection u
 The toggle endpoint requires:
 
 - `elementId`
-- `elementType`
 - `collectionId`
-
-If you want a simple "save to default collection" button, first resolve the default collection in Twig:
-
-```twig
-{% set collection = craft.superFavourite.getDefaultCollection() %}
-
-{% if collection %}
-    <input type="hidden" name="collectionId" value="{{ collection.id }}">
-{% endif %}
-```
 
 ## Current User Is Required
 
