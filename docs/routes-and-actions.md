@@ -46,6 +46,7 @@ Fields:
 Permission:
 
 - `super-favourite:manage-collections`
+- `super-favourite:manage-global-collections` is also required when creating or editing a global/default collection.
 
 ### Delete Collection
 
@@ -60,9 +61,11 @@ Method: `POST`
 Fields:
 
 - `id` - required collection element ID.
-- `deleteItems` - optional boolean.
+- `deleteItems` - optional boolean. When truthy, the collection is deleted immediately and favourite item cleanup is queued.
 
-Requires login. Admins can delete any collection; users can delete their own collections and global collections if allowed by validation.
+Requires login. Admins can delete any collection; users can delete their own collections. Global collections require admin access or `super-favourite:manage-global-collections`. Without `deleteItems`, collections that still contain enabled favourite items cannot be deleted.
+
+Non-JSON failures return the failed `collection` model via Craft's model failure response. JSON failures return `success: false` with an error message.
 
 ### Set Default Collection
 
@@ -81,6 +84,7 @@ Fields:
 Permission:
 
 - `super-favourite:manage-collections`
+- `super-favourite:manage-global-collections`
 
 ### Reorder Collections
 
@@ -99,6 +103,7 @@ Fields:
 Permission:
 
 - `super-favourite:manage-collections`
+- `super-favourite:manage-global-collections` is also required when the submitted order includes global collections.
 
 ## Favourite Actions
 
@@ -143,6 +148,8 @@ Fields:
 
 CP requests require `super-favourite:manage-favourites`. Frontend requests require login.
 
+Non-JSON failures return the failed `favouriteItem` model via Craft's model failure response. JSON failures return `success: false` with an error message/errors payload.
+
 ### Remove Favourite by Element
 
 Action:
@@ -159,6 +166,8 @@ Fields:
 - `collectionId` - optional.
 
 Requires login.
+
+Non-JSON failures return the failed `favourite` model when a favourite item can be identified.
 
 ### Toggle Favourite
 
@@ -177,6 +186,8 @@ Fields:
 - `collectionId` - required.
 
 Requires login.
+
+Non-JSON failures return the failed `favourite` model. JSON failures return `success: false` with an error message/errors payload.
 
 Successful responses include data with:
 

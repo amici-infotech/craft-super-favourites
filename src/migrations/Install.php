@@ -163,12 +163,13 @@ class Install extends Migration
             false
         );
 
-        // Unique index for handle (global collections have unique handles)
+        // Non-unique index for handle lookups. Active-handle uniqueness is enforced in PHP
+        // so soft-deleted collections do not reserve their old handles.
         $this->createIndex(
             null,
             '{{%super_favourite_collections}}',
             'handle',
-            true
+            false
         );
 
         // Index for default collection lookup

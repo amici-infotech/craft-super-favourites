@@ -46,7 +46,7 @@ Use global collections for site-wide lists such as:
 - Recommended Products
 - Default Wishlist
 
-In the Control Panel, leave **Assign to User** empty to create a global collection.
+In the Control Panel, leave **Assign to User** empty to create a global collection. This requires admin access or `super-favourite:manage-global-collections`.
 
 [screenshot for creating global collection in backend]
 

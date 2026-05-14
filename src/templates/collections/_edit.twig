@@ -19,6 +19,11 @@
             {{ hiddenInput('id', collection.id) }}
         {% endif %}
 
+        {% if not canManageGlobalCollections %}
+            {{ hiddenInput('userId', collection.userId ?? currentUser.id) }}
+            {{ hiddenInput('isDefault', '0') }}
+        {% endif %}
+
         {{ forms.textField({
             first: true,
             label: "Name"|t('super-favourite'),
@@ -53,28 +58,37 @@
             rows: 3
         }) }}
 
-        {{ forms.lightswitchField({
-            label: "Default Collection"|t('super-favourite'),
-            instructions: "Whether this is a default collection for new favourites. Default collections are always global and cannot be assigned to users."|t('super-favourite'),
-            id: 'isDefault',
-            name: 'isDefault',
-            value: 1,
-            on: collection.isDefault,
-            errors: collection.getErrors('isDefault')
-        }) }}
+        {% if canManageGlobalCollections %}
+            {% if collection.isDefault %}
+                {{ hiddenInput('isDefault', '1') }}
+            {% endif %}
 
-        <div id="user-field-wrapper">
-            {{ forms.elementSelectField({
-                label: "Assign to User"|t('super-favourite'),
-                instructions: "Assign this collection to a specific user. Leave empty for global collection."|t('super-favourite'),
-                id: 'userId',
-                name: 'userId',
-                elementType: 'craft\\elements\\User',
-                limit: 1,
-                elements: collection.userId ? [collection.getUser()] : [],
-                errors: collection.getErrors('userId')
+            {{ forms.lightswitchField({
+                label: "Default Collection"|t('super-favourite'),
+                instructions: collection.isDefault
+                    ? "This is the default collection. Set another global collection as default before changing this one."|t('super-favourite')
+                    : "Whether this is a default collection for new favourites. Default collections are always global and cannot be assigned to users."|t('super-favourite'),
+                id: 'isDefault',
+                name: 'isDefault',
+                value: 1,
+                on: collection.isDefault,
+                disabled: collection.isDefault,
+                errors: collection.getErrors('isDefault')
             }) }}
-        </div>
+
+            <div id="user-field-wrapper">
+                {{ forms.elementSelectField({
+                    label: "Assign to User"|t('super-favourite'),
+                    instructions: "Assign this collection to a specific user. Leave empty for global collection."|t('super-favourite'),
+                    id: 'userId',
+                    name: 'userId',
+                    elementType: 'craft\\elements\\User',
+                    limit: 1,
+                    elements: collection.userId ? [collection.getUser()] : [],
+                    errors: collection.getErrors('userId')
+                }) }}
+            </div>
+        {% endif %}
 
         <hr>
         {{ forms.checkboxSelectField({
@@ -116,64 +130,66 @@ new Craft.Tabs($('#tabs'));
     {% endjs %}
 {% endif %}
 
-{% js %}
-    // Hide user field when default collection is enabled
-    (function() {
-        var $userFieldWrapper = $('#user-field-wrapper');
-        var $userField = $('#userId');
-        var $defaultSwitch = $('#isDefault');
-        var $defaultSwitchContainer = $defaultSwitch.closest('.lightswitch');
+{% if canManageGlobalCollections %}
+    {% js %}
+        // Hide user field when default collection is enabled
+        (function() {
+            var $userFieldWrapper = $('#user-field-wrapper');
+            var $userField = $('#userId');
+            var $defaultSwitch = $('#isDefault');
+            var $defaultSwitchContainer = $defaultSwitch.closest('.lightswitch');
 
-        function clearUserField() {
-            // Find and clear the element select
-            var $elementSelect = $userField.closest('.elementselect');
-            if ($elementSelect.length) {
-                var elementSelect = $elementSelect.data('elementSelect');
-                if (elementSelect && typeof elementSelect.removeAllElements === 'function') {
-                    elementSelect.removeAllElements();
+            function clearUserField() {
+                // Find and clear the element select
+                var $elementSelect = $userField.closest('.elementselect');
+                if ($elementSelect.length) {
+                    var elementSelect = $elementSelect.data('elementSelect');
+                    if (elementSelect && typeof elementSelect.removeAllElements === 'function') {
+                        elementSelect.removeAllElements();
+                    }
+                }
+
+                // Also clear any hidden inputs with userId name
+                $('input[name="userId[]"]').remove();
+                $userField.val('');
+            }
+
+            function toggleUserField() {
+                var isDefault = $defaultSwitch.prop('checked') || $defaultSwitchContainer.hasClass('on');
+
+                if (isDefault) {
+                    // Hide user field
+                    $userFieldWrapper.hide();
+
+                    // Clear selected user
+                    clearUserField();
+                } else {
+                    // Show user field
+                    $userFieldWrapper.show();
                 }
             }
 
-            // Also clear any hidden inputs with userId name
-            $('input[name="userId[]"]').remove();
-            $userField.val('');
-        }
-
-        function toggleUserField() {
-            var isDefault = $defaultSwitch.prop('checked') || $defaultSwitchContainer.hasClass('on');
-
-            if (isDefault) {
-                // Hide user field
-                $userFieldWrapper.hide();
-
-                // Clear selected user
-                clearUserField();
-            } else {
-                // Show user field
-                $userFieldWrapper.show();
-            }
-        }
-
-        // Wait for Craft to initialize, then check on load
-        setTimeout(function() {
-            toggleUserField();
-        }, 100);
-
-        // Listen to clicks on the lightswitch container
-        $defaultSwitchContainer.on('click', function() {
+            // Wait for Craft to initialize, then check on load
             setTimeout(function() {
                 toggleUserField();
-            }, 50);
-        });
+            }, 100);
 
-        // Also listen to change on the checkbox itself
-        $defaultSwitch.on('change', function() {
-            setTimeout(function() {
-                toggleUserField();
-            }, 50);
-        });
-    })();
-{% endjs %}
+            // Listen to clicks on the lightswitch container
+            $defaultSwitchContainer.on('click', function() {
+                setTimeout(function() {
+                    toggleUserField();
+                }, 50);
+            });
+
+            // Also listen to change on the checkbox itself
+            $defaultSwitch.on('change', function() {
+                setTimeout(function() {
+                    toggleUserField();
+                }, 50);
+            });
+        })();
+    {% endjs %}
+{% endif %}
 
 {% block details %}
     {% if not isNew %}

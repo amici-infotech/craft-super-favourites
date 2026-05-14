@@ -2,13 +2,13 @@
 
 All frontend forms need CSRF protection. Most actions also require a logged-in user. Use `actionInput()` for normal Twig forms, or post to `/actions/...` with a CSRF token for JavaScript requests.
 
-Frontend collection saving uses the same action as the Control Panel and currently requires `super-favourite:manage-collections`.
+Frontend collection saving uses the same action as the Control Panel and currently requires `super-favourite:manage-collections`. Creating, editing, deleting, reordering, or setting default global collections also requires admin access or `super-favourite:manage-global-collections`.
 
 ## Collection Save Form
 
 Use one form for create, edit, global collections, user collections, default collections, allowed element types, and collection custom fields. The comments in the example explain what each field changes.
 
-The `_self.fieldErrors()` macro renders validation errors from the model Craft returns after a failed submit. Use the returned `collection` variable when it exists so submitted values and errors are preserved.
+The `_self.fieldErrors()` macro renders validation errors from the model Craft returns after a failed submit. Use the returned `collection` variable when it exists so submitted values and errors are preserved. Collection delete failures also return the failed `collection` model, so list pages can read `collection.getErrors()`.
 
 ```twig
 {% macro fieldErrors(model, field) %}
@@ -25,6 +25,7 @@ The `_self.fieldErrors()` macro renders validation errors from the model Craft r
 {% set collection = collection ?? create('amici\\SuperFavourite\\elements\\Collection') %}
 {% set elementTypes = craft.superFavourite.getAvailableElementTypes() %}
 {% set isDefault = collection.isDefault %}
+{% set canManageGlobalCollections = currentUser.admin or currentUser.can('super-favourite:manage-global-collections') %}
 
 <form method="post" accept-charset="UTF-8">
     {{ csrfInput() }}
@@ -49,26 +50,33 @@ The `_self.fieldErrors()` macro renders validation errors from the model Craft r
     {{ _self.fieldErrors(collection, 'description') }}
 
     {# User collection: set this to a user ID, usually currentUser.id. #}
-    {# Global collection: leave this field empty. #}
+    {# Global collection: leave this field empty. Requires manage-global-collections. #}
     {# Default collection: the plugin clears userId because default collections are global. #}
     <label>
         Owner user ID
         <input
             type="number"
             name="userId"
-            value="{{ collection.id ? collection.userId : currentUser.id }}"
+            value="{{ collection.id and canManageGlobalCollections ? collection.userId : currentUser.id }}"
         >
     </label>
     {{ _self.fieldErrors(collection, 'userId') }}
 
-    {# Default collection: check this box. Normal collection: leave unchecked. #}
-    {# A default collection is used when favourites are saved without collectionId. #}
-    <input type="hidden" name="isDefault" value="0">
-    <label>
-        <input type="checkbox" name="isDefault" value="1" {{ isDefault ? 'checked' }}>
-        Use as default collection
-    </label>
-    {{ _self.fieldErrors(collection, 'isDefault') }}
+    {% if canManageGlobalCollections %}
+        {# Default collection: check this box. Normal collection: leave unchecked. #}
+        {# A default collection is used when favourites are saved without collectionId. #}
+        <input type="hidden" name="isDefault" value="{{ isDefault ? '1' : '0' }}">
+        <label>
+            <input type="checkbox" name="isDefault" value="1" {{ isDefault ? 'checked disabled' }}>
+            Use as default collection
+        </label>
+        {% if isDefault %}
+            <p>Set another global collection as default before changing this one.</p>
+        {% endif %}
+        {{ _self.fieldErrors(collection, 'isDefault') }}
+    {% else %}
+        <input type="hidden" name="isDefault" value="0">
+    {% endif %}
 
     {# Allowed element types can be rendered dynamically from the plugin. #}
     {# To allow all element types, submit no allowedElementTypes[] checkboxes. #}
@@ -124,18 +132,22 @@ To allow all element types, submit no `allowedElementTypes[]` values. If your UI
 
     <input type="hidden" name="id" value="{{ collection.id }}">
 
-    {# Optional. Requests deletion of favourite items in the collection too. #}
+    {# Optional. Deletes the collection now, then queues favourite item cleanup. #}
     <input type="hidden" name="deleteItems" value="1">
 
     <button type="submit">Delete collection</button>
 </form>
 ```
 
-Default collections and collections with enabled favourite items can still be blocked by validation.
+Without `deleteItems`, collections with enabled favourite items are blocked by validation. With `deleteItems=1`, the collection is deleted immediately and the plugin queues favourite item cleanup so large collections do not make the form submit wait.
+
+Failed deletes return the failed `collection` model with errors attached, such as a default collection block, missing permission, or enabled favourite item warning.
 
 ## Favourite Save Form
 
 Use `favourite/add` for a simple add button. Use `favourite/save` when you need custom fields or CP-like editing behavior.
+
+Favourite save, move, and delete failures return the failed `favouriteItem`/`favourite` model with errors attached for normal form submissions, and JSON errors for AJAX requests.
 
 ```twig
 {% requireLogin %}

@@ -178,6 +178,8 @@ $success = Plugin::getInstance()->collection->deleteCollection(
 );
 ```
 
+When `deleteItems` is `false`, the delete is blocked if the collection still has enabled favourite items. When `deleteItems` is `true`, the collection is deleted immediately and the plugin queues a background job to clean up favourite items.
+
 ### Get Collections for a User
 
 ```php

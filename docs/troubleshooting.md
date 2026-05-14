@@ -42,9 +42,18 @@ Collection deletion can fail when:
 
 Fix:
 
-- Disable default before deleting, or choose another default.
-- Remove favourite items first.
+- Choose another default collection before deleting the current default.
+- Remove favourite items first, or submit `deleteItems=1` so the plugin deletes the collection immediately and queues favourite item cleanup.
 - Confirm the user has permission to manage/delete the collection.
+- For global collections, confirm the user is an admin or has `super-favourite:manage-global-collections`.
+
+## Default Collection Cannot Be Unchecked
+
+The plugin always keeps a default collection. To change the default, edit another global collection and enable **Default Collection**. The previous default will be unset automatically.
+
+## Duplicate Handle After Deleting Collections
+
+Deleted collections do not reserve their handles. If a soft-deleted collection used `default`, a new active collection can use `default` again after plugin migrations have been applied.
 
 ## Favourite Toggle Requires Collection ID
 

@@ -46,6 +46,10 @@ Use this screen to:
 
 Global collections are available site-wide. User collections belong to one Craft user. Default collections are global, so the user field is hidden and cleared when default is enabled.
 
+Creating, editing, deleting, reordering, or setting default global collections requires admin access or `super-favourite:manage-global-collections`.
+
+An existing default collection cannot be unset directly. Set another global collection as default instead, which automatically clears the previous default.
+
 [screenshot for backend collection create/edit form showing user, default, and allowed element type fields]
 
 ## Collection Custom Fields
@@ -129,6 +133,7 @@ The plugin registers:
 - `super-favourite:manage-favourites`
 - `super-favourite:view-collections`
 - `super-favourite:manage-collections`
+- `super-favourite:manage-global-collections`
 
 Craft's plugin access permission is also used for settings screens.
 

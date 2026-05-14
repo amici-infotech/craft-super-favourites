@@ -6,7 +6,7 @@ use craft\base\Component;
 use craft\events\ModelEvent;
 
 use amici\SuperFavourite\elements\Collection;
-use amici\SuperFavourite\elements\FavouriteItem;
+use amici\SuperFavourite\jobs\DeleteFavouriteItemsForCollection;
 
 /**
  * Collection Service
@@ -17,6 +17,8 @@ use amici\SuperFavourite\elements\FavouriteItem;
  */
 class CollectionService extends Component
 {
+    private ?string $_lastError = null;
+
     /**
      * Event fired before a collection is created
      * Use this to validate, modify, or cancel creation by setting $event->isValid = false
@@ -40,6 +42,17 @@ class CollectionService extends Component
      * Use this for cleanup, notifications, or cascading operations
      */
     const EVENT_AFTER_DELETE_COLLECTION = 'afterDeleteCollection';
+
+    /**
+     * Returns the last service-level error message.
+     *
+     * @return ?string The most recent error, or null when none exists.
+     */
+    public function getLastError(): ?string
+    {
+        return $this->_lastError;
+    }
+
     /**
      * Creates a new collection element.
      *
@@ -118,45 +131,57 @@ class CollectionService extends Component
     }
 
     /**
-     * Deletes a collection and optionally its favourite items.
+     * Deletes a collection and optionally queues deletion of its favourite items.
      *
-     * @param int $collectionId The ID of the collection element.
-     * @param bool $deleteItems Whether favourite items in the collection should also be deleted.
+     * @param int|Collection $collection The collection element or its ID.
+     * @param bool $deleteItems Whether favourite items in the collection should also be deleted by a queue job.
      *
-     * @return bool True on success or when the condition matches; false otherwise.
+     * @return bool True when deleted or queued; false when the collection cannot be deleted.
      */
-    public function deleteCollection(int $collectionId, bool $deleteItems = false): bool
+    public function deleteCollection(int|Collection $collection, bool $deleteItems = false): bool
     {
-        // Find the collection to delete
-        $collection = Collection::find()->id($collectionId)->one();
+        $this->_lastError = null;
+
+        $collection = is_int($collection)
+            ? Collection::find()->id($collection)->one()
+            : $collection;
 
         if (!$collection) {
+            $this->_lastError = Craft::t('super-favourite', 'Collection not found.');
             return false;
         }
+
+        $collectionId = (int)$collection->id;
 
         // Trigger before event - allows cancellation (e.g., prevent deletion of default collections)
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_COLLECTION)) {
             $event = new ModelEvent(['sender' => $collection]);
             $this->trigger(self::EVENT_BEFORE_DELETE_COLLECTION, $event);
             if (!$event->isValid) {
+                $this->_lastError = Craft::t('super-favourite', 'Collection deletion was cancelled.');
+                /** @var \craft\base\Model $collection */
+                $collection->addError('id', $this->_lastError);
+                /** @var Collection $collection */
                 return false;
             }
         }
 
-        // Optionally delete all items in the collection (cascading delete)
         if ($deleteItems) {
-            $items = FavouriteItem::find()
-                ->collectionId($collectionId)
-                ->all();
-
-            foreach ($items as $item) {
-                Craft::$app->getElements()->deleteElement($item);
-            }
+            $collection->allowDeleteWithFavouriteItems = true;
         }
 
-        // Delete the collection element
         if (!Craft::$app->getElements()->deleteElement($collection)) {
+            $this->_lastError = $this->modelErrorsToString(
+                $collection,
+                Craft::t('super-favourite', 'Failed to delete collection.')
+            );
             return false;
+        }
+
+        if ($deleteItems) {
+            Craft::$app->getQueue()->push(new DeleteFavouriteItemsForCollection([
+                'collectionId' => $collectionId,
+            ]));
         }
 
         // Trigger after event - useful for cleanup or notifications
@@ -165,6 +190,31 @@ class CollectionService extends Component
         }
 
         return true;
+    }
+
+    /**
+     * Formats model validation errors for controller responses and flash messages.
+     *
+     * @param Collection $collection The collection model that failed.
+     * @param string $fallback The fallback message when no validation errors exist.
+     *
+     * @return string A readable error message.
+     */
+    private function modelErrorsToString(Collection $collection, string $fallback): string
+    {
+        /** @var \craft\base\Model $collection */
+        $errors = $collection->getErrors();
+
+        if (empty($errors)) {
+            return $fallback;
+        }
+
+        $messages = [];
+        foreach ($errors as $fieldErrors) {
+            $messages[] = implode(', ', $fieldErrors);
+        }
+
+        return implode(' ', $messages);
     }
 
     /**

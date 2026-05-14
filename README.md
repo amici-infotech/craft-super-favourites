@@ -59,6 +59,7 @@ The plugin registers permissions for viewing and managing favourites and collect
 - `super-favourite:manage-favourites`
 - `super-favourite:view-collections`
 - `super-favourite:manage-collections`
+- `super-favourite:manage-global-collections`
 
 ## License
 

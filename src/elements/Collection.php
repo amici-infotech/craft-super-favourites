@@ -23,6 +23,10 @@ use amici\SuperFavourite\conditions\CollectionCondition;
  * Collection Element
  *
  * Represents a user-created collection/list for organizing favourites
+ *
+ * @method void addError(string $attribute, string $error = '')
+ * @method array getErrors(?string $attribute = null)
+ * @method void setScenario(string $value)
  */
 class Collection extends Element
 {
@@ -33,6 +37,8 @@ class Collection extends Element
     public bool $isDefault = false;
     public int $sortOrder = 0;
     public ?int $fieldLayoutId = null;
+    public bool $allowDeleteWithFavouriteItems = false;
+    public bool $allowUnsetDefault = false;
 
     private array $_allowedElementTypes = [];
     private User|false|null $_user = null;
@@ -421,6 +427,10 @@ class Collection extends Element
      */
     public function canSave(User $user): bool
     {
+        if ($this->userId === null || $this->isDefault) {
+            return $this->canManageGlobalCollections($user);
+        }
+
         return $user->can('super-favourite:manage-collections');
     }
 
@@ -445,6 +455,10 @@ class Collection extends Element
      */
     public function canDelete(User $user): bool
     {
+        if ($this->userId === null) {
+            return $this->canManageGlobalCollections($user);
+        }
+
         return $user->can('super-favourite:manage-collections');
     }
 
@@ -467,13 +481,14 @@ class Collection extends Element
             return false;
         }
 
-        // Prevent deleting collections that have enabled favourite items
+        // Normal deletes are blocked while favourites exist. The collection service can
+        // bypass this after it has scheduled favourite cleanup in the queue.
         $enabledItemsCount = FavouriteItem::find()
             ->collectionId($this->id)
             ->status(Element::STATUS_ENABLED)
             ->count();
 
-        if ($enabledItemsCount > 0) {
+        if ($enabledItemsCount > 0 && !$this->allowDeleteWithFavouriteItems) {
             $this->addError('id', Craft::t('super-favourite',
                 'Cannot delete collection with {count} enabled favourite item(s). Please remove or disable the favourites first.',
                 ['count' => $enabledItemsCount]
@@ -493,6 +508,10 @@ class Collection extends Element
      */
     public function canDuplicate(User $user): bool
     {
+        if ($this->userId === null || $this->isDefault) {
+            return $this->canManageGlobalCollections($user);
+        }
+
         return $user->can('super-favourite:manage-collections');
     }
 
@@ -558,6 +577,11 @@ class Collection extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
+        // Default collections must be global before handle uniqueness is checked.
+        if ($this->isDefault) {
+            $this->userId = null;
+        }
+
         // Generate handle if empty
         if (empty($this->handle) && !empty($this->name)) {
             $this->handle = $this->generateUniqueHandle($this->name);
@@ -568,10 +592,14 @@ class Collection extends Element
 
         $this->title = $this->name;
 
-        // Default collections must be global (userId = null)
-        // If isDefault is true, clear userId
-        if ($this->isDefault) {
-            $this->userId = null;
+        if (!$isNew && !$this->isDefault && !$this->allowUnsetDefault) {
+            $existingRecord = CollectionRecord::findOne($this->id);
+            if ($existingRecord && (bool)$existingRecord->isDefault) {
+                $this->addError('isDefault', Craft::t('super-favourite',
+                    'The default collection cannot be unset directly. Set another global collection as default instead.'
+                ));
+                return false;
+            }
         }
 
         // If this collection is being set as default, unset any other default collections
@@ -586,6 +614,7 @@ class Collection extends Element
 
             if ($existingDefault) {
                 $existingDefault->isDefault = false;
+                $existingDefault->allowUnsetDefault = true;
                 Craft::$app->getElements()->saveElement($existingDefault, false);
             }
         }
@@ -710,7 +739,8 @@ class Collection extends Element
     private function handleExists(string $handle): bool
     {
         $query = Collection::find()
-            ->handle($handle);
+            ->handle($handle)
+            ->userId($this->userId);
 
         // Exclude current collection if it has an ID (not new)
         if ($this->id) {
@@ -718,6 +748,18 @@ class Collection extends Element
         }
 
         return $query->exists();
+    }
+
+    /**
+     * Checks whether the user can manage global/default collections.
+     *
+     * @param User $user The Craft user whose permissions should be checked.
+     *
+     * @return bool Whether the user has global collection management access.
+     */
+    private function canManageGlobalCollections(User $user): bool
+    {
+        return $user->admin || $user->can('super-favourite:manage-global-collections');
     }
 
     /**

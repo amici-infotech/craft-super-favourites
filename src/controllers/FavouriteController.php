@@ -316,7 +316,9 @@ class FavouriteController extends Controller
         } elseif (!empty($elementIds)) {
             $favouriteItem->elementId = (int)$elementIds;
         } else {
+            /** @var \craft\base\Model $favouriteItem */
             $favouriteItem->addError('elementId', Craft::t('super-favourite', 'Please select an element.'));
+            /** @var FavouriteItem $favouriteItem */
         }
 
         // Get userId - handle both CP (array/element select) and frontend (auto-assign current user) formats
@@ -333,7 +335,9 @@ class FavouriteController extends Controller
             if ($currentUser) {
                 $favouriteItem->userId = $currentUser->id;
             } else {
+                /** @var \craft\base\Model $favouriteItem */
                 $favouriteItem->addError('userId', Craft::t('super-favourite', 'Please login to add favourites.'));
+                /** @var FavouriteItem $favouriteItem */
             }
         }
 
@@ -361,21 +365,11 @@ class FavouriteController extends Controller
             if ($defaultCollection) {
                 $favouriteItem->collectionId = $defaultCollection->id;
             } else {
-                // No default collection found - this is a critical error
-                $errorMessage = Craft::t('super-favourite', 'No default collection found. Please create a default collection first or select a collection.');
-
-                if ($request->getAcceptsJson()) {
-                    return $this->asJson([
-                        'success' => false,
-                        'error' => $errorMessage
-                    ]);
-                }
-
-                Craft::$app->getSession()->setError($errorMessage);
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'favouriteItem' => $favouriteItem
-                ]);
-                return null;
+                return $this->favouriteModelFailure(
+                    $favouriteItem,
+                    'collectionId',
+                    Craft::t('super-favourite', 'No default collection found. Please create a default collection first or select a collection.')
+                );
             }
         }
 
@@ -385,38 +379,20 @@ class FavouriteController extends Controller
             ->one();
 
         if (!$collection) {
-            $errorMessage = Craft::t('super-favourite', 'Collection not found.');
-
-            if ($request->getAcceptsJson()) {
-                return $this->asJson([
-                    'success' => false,
-                    'error' => $errorMessage
-                ]);
-            }
-
-            Craft::$app->getSession()->setError($errorMessage);
-            Craft::$app->getUrlManager()->setRouteParams([
-                'favouriteItem' => $favouriteItem
-            ]);
-            return null;
+            return $this->favouriteModelFailure(
+                $favouriteItem,
+                'collectionId',
+                Craft::t('super-favourite', 'Collection not found.')
+            );
         }
 
         // If it's not a global collection, only the owner can add items
         if ($collection->userId !== null && $collection->userId !== $favouriteItem->userId) {
-            $errorMessage = Craft::t('super-favourite', 'You do not have permission to add items to this collection. Only the collection owner can add items to personal collections.');
-
-            if ($request->getAcceptsJson()) {
-                return $this->asJson([
-                    'success' => false,
-                    'error' => $errorMessage
-                ]);
-            }
-
-            Craft::$app->getSession()->setError($errorMessage);
-            Craft::$app->getUrlManager()->setRouteParams([
-                'favouriteItem' => $favouriteItem
-            ]);
-            return null;
+            return $this->favouriteModelFailure(
+                $favouriteItem,
+                'collectionId',
+                Craft::t('super-favourite', 'You do not have permission to add items to this collection. Only the collection owner can add items to personal collections.')
+            );
         }
 
         // Validation 2: Check allowed element types
@@ -435,18 +411,7 @@ class FavouriteController extends Controller
                     'elementType' => $elementTypeLabel
                 ]);
 
-                if ($request->getAcceptsJson()) {
-                    return $this->asJson([
-                        'success' => false,
-                        'error' => $errorMessage
-                    ]);
-                }
-
-                Craft::$app->getSession()->setError($errorMessage);
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'favouriteItem' => $favouriteItem
-                ]);
-                return null;
+                return $this->favouriteModelFailure($favouriteItem, 'elementType', $errorMessage);
             }
         }
 
@@ -485,7 +450,9 @@ class FavouriteController extends Controller
         $favouriteItem->setFieldValuesFromRequest('fields');
 
         // Set scenario to LIVE for proper content saving
+        /** @var \craft\base\Model $favouriteItem */
         $favouriteItem->setScenario(\craft\base\Element::SCENARIO_LIVE);
+        /** @var FavouriteItem $favouriteItem */
 
         // Save and return validation errors if it fails
         if (!Craft::$app->getElements()->saveElement($favouriteItem)) {
@@ -532,7 +499,13 @@ class FavouriteController extends Controller
         if (!$collectionId) {
             $collection = Plugin::getInstance()->favourite->getOrCreateDefaultCollection($currentUser->id);
             if (!$collection) {
-                return $this->asFailure(Craft::t('super-favourite', 'Could not create default collection.'));
+                $favourite = new FavouriteItem();
+                return $this->favouriteModelFailure(
+                    $favourite,
+                    'collectionId',
+                    Craft::t('super-favourite', 'Could not create default collection.'),
+                    'favourite'
+                );
             }
             $collectionId = $collection->id;
         }
@@ -601,6 +574,22 @@ class FavouriteController extends Controller
             return $this->asFailure(Craft::t('super-favourite', 'User must be logged in.'));
         }
 
+        $favouriteItem = FavouriteItem::find()
+            ->userId($currentUser->id)
+            ->elementId((int)$elementId)
+            ->collectionId($collectionId ? (int)$collectionId : null)
+            ->one();
+
+        if (!$favouriteItem) {
+            $favouriteItem = new FavouriteItem();
+            return $this->favouriteModelFailure(
+                $favouriteItem,
+                'elementId',
+                Craft::t('super-favourite', 'Favourite item not found.'),
+                'favourite'
+            );
+        }
+
         // Attempt to remove favourite
         $success = Plugin::getInstance()->favourite->removeFavourite(
             (int)$elementId,
@@ -609,7 +598,12 @@ class FavouriteController extends Controller
         );
 
         if (!$success) {
-            return $this->asFailure(Craft::t('super-favourite', 'Failed to remove item from favourites.'));
+            return $this->favouriteModelFailure(
+                $favouriteItem,
+                'id',
+                Craft::t('super-favourite', 'Failed to remove item from favourites.'),
+                'favourite'
+            );
         }
 
         return $this->asSuccess(Craft::t('super-favourite', 'Item removed from favourites.'));
@@ -717,6 +711,19 @@ class FavouriteController extends Controller
             throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
         }
         $newCollectionId = $request->getRequiredBodyParam('collectionId');
+        $favouriteItem = FavouriteItem::find()->id($favouriteId)->one();
+
+        if (!$favouriteItem) {
+            $favouriteItem = new FavouriteItem();
+            /** @var \craft\base\Model $favouriteItem */
+            $favouriteItem->addError('id', Craft::t('super-favourite', 'Favourite item not found.'));
+            /** @var FavouriteItem $favouriteItem */
+            return $this->asModelFailure(
+                $favouriteItem,
+                Craft::t('super-favourite', 'Favourite item not found.'),
+                'favourite'
+            );
+        }
 
         // Attempt to move favourite to new collection
         $success = Plugin::getInstance()->favourite->moveFavourite(
@@ -725,7 +732,14 @@ class FavouriteController extends Controller
         );
 
         if (!$success) {
-            return $this->asFailure(Craft::t('super-favourite', 'Failed to move favourite.'));
+            /** @var \craft\base\Model $favouriteItem */
+            $favouriteItem->addError('collectionId', Craft::t('super-favourite', 'Failed to move favourite.'));
+            /** @var FavouriteItem $favouriteItem */
+            return $this->asModelFailure(
+                $favouriteItem,
+                Craft::t('super-favourite', 'Failed to move favourite.'),
+                'favourite'
+            );
         }
 
         return $this->asSuccess(Craft::t('super-favourite', 'Favourite moved to new collection.'));
@@ -755,13 +769,28 @@ class FavouriteController extends Controller
             ->one();
 
         if (!$favouriteItem) {
-            return $this->asFailure(Craft::t('super-favourite', 'Favourite item not found.'));
+            $favouriteItem = new FavouriteItem();
+            /** @var \craft\base\Model $favouriteItem */
+            $favouriteItem->addError('id', Craft::t('super-favourite', 'Favourite item not found.'));
+            /** @var FavouriteItem $favouriteItem */
+            return $this->asModelFailure(
+                $favouriteItem,
+                Craft::t('super-favourite', 'Favourite item not found.'),
+                'favourite'
+            );
         }
 
         // Check permissions: user must be the owner or an admin
         $currentUser = Craft::$app->getUser()->getIdentity();
         if ($favouriteItem->userId !== $currentUser->id && !$currentUser->admin) {
-            return $this->asFailure(Craft::t('super-favourite', 'You do not have permission to delete this favourite.'));
+            /** @var \craft\base\Model $favouriteItem */
+            $favouriteItem->addError('id', Craft::t('super-favourite', 'You do not have permission to delete this favourite.'));
+            /** @var FavouriteItem $favouriteItem */
+            return $this->asModelFailure(
+                $favouriteItem,
+                Craft::t('super-favourite', 'You do not have permission to delete this favourite.'),
+                'favourite'
+            );
         }
 
         // Delete the favourite item (hard delete for consistency)
@@ -777,6 +806,33 @@ class FavouriteController extends Controller
             $favouriteItem,
             Craft::t('super-favourite', 'Favourite removed.'),
             'favourite'
+        );
+    }
+
+    /**
+     * Adds a validation error to a favourite item and returns a model failure response.
+     *
+     * @param FavouriteItem $favouriteItem The model receiving the error.
+     * @param string $attribute The attribute to attach the error to.
+     * @param string $message The validation message.
+     *
+     * @return ?Response The Craft model failure response.
+     */
+    private function favouriteModelFailure(
+        FavouriteItem $favouriteItem,
+        string $attribute,
+        string $message,
+        string $variableName = 'favouriteItem'
+    ): ?Response
+    {
+        /** @var \craft\base\Model $favouriteItem */
+        $favouriteItem->addError($attribute, $message);
+        /** @var FavouriteItem $favouriteItem */
+
+        return $this->asModelFailure(
+            $favouriteItem,
+            $message,
+            $variableName
         );
     }
 }

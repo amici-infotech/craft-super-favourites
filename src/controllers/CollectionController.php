@@ -2,6 +2,7 @@
 namespace amici\SuperFavourite\controllers;
 
 use Craft;
+use craft\elements\User;
 use craft\web\Controller;
 use yii\web\Response;
 
@@ -44,6 +45,8 @@ class CollectionController extends Controller
     public function actionEdit(?int $collectionId = null, ?Collection $collection = null): Response
     {
         $this->requirePermission('super-favourite:manage-collections');
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $canManageGlobalCollections = $this->canManageGlobalCollections($currentUser);
 
         if ($collection === null && $collectionId !== null) {
             $collection = Collection::find()->id($collectionId)->one();
@@ -51,11 +54,19 @@ class CollectionController extends Controller
             if (!$collection) {
                 throw new \yii\web\NotFoundHttpException('Collection not found');
             }
+
+            if ($collection->userId === null && !$canManageGlobalCollections) {
+                throw new \yii\web\ForbiddenHttpException('You do not have permission to edit global collections.');
+            }
         }
 
         if ($collection === null) {
             $collection = new Collection();
-            $collection->userId = null;
+            $collection->userId = $canManageGlobalCollections ? null : $currentUser->id;
+        }
+
+        if ($collection->id && $collection->userId === null && !$canManageGlobalCollections) {
+            throw new \yii\web\ForbiddenHttpException('You do not have permission to edit global collections.');
         }
 
         $tabs = [];
@@ -89,6 +100,7 @@ class CollectionController extends Controller
             'isNew' => !$collection->id,
             'tabs' => $tabs,
             'elementTypeOptions' => $elementTypeOptions,
+            'canManageGlobalCollections' => $canManageGlobalCollections,
         ]);
     }
 
@@ -106,6 +118,8 @@ class CollectionController extends Controller
 
         $request = Craft::$app->getRequest();
         $collectionId = $request->getBodyParam('id') ?? $request->getBodyParam('collectionId');
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $wasGlobal = false;
 
         if ($collectionId) {
             $collection = Collection::find()->id($collectionId)->one();
@@ -113,6 +127,8 @@ class CollectionController extends Controller
             if (!$collection) {
                 throw new \yii\web\NotFoundHttpException('Collection not found');
             }
+
+            $wasGlobal = $collection->userId === null;
         } else {
             $collection = new Collection();
             // Don't set userId here - will be set from POST data below
@@ -153,6 +169,17 @@ class CollectionController extends Controller
             $collection->userId = null;
         }
 
+        if ($collection->isDefault) {
+            $collection->userId = null;
+        }
+
+        if (($wasGlobal || $collection->userId === null) && !$this->canManageGlobalCollections($currentUser)) {
+            /** @var \craft\base\Model $collection */
+            $collection->addError('userId', Craft::t('super-favourite', 'You do not have permission to create or edit global collections.'));
+            /** @var Collection $collection */
+            return $this->collectionSaveFailure($collection, Craft::t('super-favourite', 'Couldn\'t save collection.'));
+        }
+
         // Get allowed element types from checkboxes.
         // Empty array means all element types are allowed.
         $allowedElementTypes = $request->getBodyParam('allowedElementTypes');
@@ -171,29 +198,21 @@ class CollectionController extends Controller
         $collection->setFieldValuesFromRequest('fields');
 
         // Set scenario to LIVE for proper content saving
+        /** @var \craft\base\Model $collection */
         $collection->setScenario(\craft\base\Element::SCENARIO_LIVE);
+        /** @var Collection $collection */
 
         // Save it
         if (!Craft::$app->getElements()->saveElement($collection)) {
-            // Get validation errors
-            $errors = $collection->getErrors();
-            $errorMessage = Craft::t('super-favourite', 'Couldn\'t save collection.');
+            return $this->collectionSaveFailure($collection, Craft::t('super-favourite', 'Couldn\'t save collection.'));
+        }
 
-            if (!empty($errors)) {
-                $errorList = [];
-                foreach ($errors as $field => $fieldErrors) {
-                    $errorList[] = implode(', ', $fieldErrors);
-                }
-                $errorMessage .= ' ' . implode(' ', $errorList);
-            }
-
-            Craft::$app->getSession()->setError($errorMessage);
-
-            Craft::$app->getUrlManager()->setRouteParams([
-                'collection' => $collection,
-            ]);
-
-            return null;
+        if ($request->getAcceptsJson()) {
+            return $this->asModelSuccess(
+                $collection,
+                Craft::t('super-favourite', 'Collection saved.'),
+                'collection'
+            );
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('super-favourite', 'Collection saved.'));
@@ -206,9 +225,9 @@ class CollectionController extends Controller
      *
      * Request values are read from Craft's request object rather than method parameters.
      *
-     * @return Response The HTTP response Craft should send.
+     * @return ?Response The HTTP response Craft should send.
      */
-    public function actionDelete(): Response
+    public function actionDelete(): ?Response
     {
         $this->requirePostRequest();
         $this->requireLogin();
@@ -230,19 +249,18 @@ class CollectionController extends Controller
                 ]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('super-favourite', 'Collection not found.'));
-            return $this->redirectToPostedUrl();
+            $missingCollection = new Collection();
+            $missingCollection->addError('id', Craft::t('super-favourite', 'Collection not found.'));
+            return $this->asModelFailure(
+                $missingCollection,
+                Craft::t('super-favourite', 'Collection not found.'),
+                'collection'
+            );
         }
 
         $currentUser = Craft::$app->getUser()->getIdentity();
 
-        // Check if user can delete:
-        // - Admins can delete anything
-        // - Users can delete their own collections
-        // - Users can delete global collections (userId is null)
-        $canDelete = $currentUser->admin
-                     || $collection->userId === $currentUser->id
-                     || $collection->userId === null;
+        $canDelete = $this->canManageCollection($collection, $currentUser);
 
         if (!$canDelete) {
             if ($request->getAcceptsJson()) {
@@ -252,36 +270,60 @@ class CollectionController extends Controller
                 ]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('super-favourite', 'You do not have permission to delete this collection.'));
-            return $this->redirectToPostedUrl();
+            /** @var \craft\base\Model $collection */
+            $collection->addError('id', Craft::t('super-favourite', 'You do not have permission to delete this collection.'));
+            /** @var Collection $collection */
+            return $this->asModelFailure(
+                $collection,
+                Craft::t('super-favourite', 'You do not have permission to delete this collection.'),
+                'collection'
+            );
         }
 
-        $success = Plugin::getInstance()->collection->deleteCollection(
-            (int)$collectionId,
-            (bool)$request->getBodyParam('deleteItems', false)
+        $deleteItems = (bool)$request->getBodyParam('deleteItems', false);
+        $collectionService = Plugin::getInstance()->collection;
+        $success = $collectionService->deleteCollection(
+            $collection,
+            $deleteItems
         );
 
         if ($success) {
+            $message = $deleteItems
+                ? Craft::t('super-favourite', 'Collection deleted. Favourite item cleanup has been queued.')
+                : Craft::t('super-favourite', 'Collection deleted.');
+
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
                     'success' => true,
-                    'message' => Craft::t('super-favourite', 'Collection deleted.')
+                    'message' => $message
                 ]);
             }
 
-            Craft::$app->getSession()->setNotice(Craft::t('super-favourite', 'Collection deleted.'));
+            Craft::$app->getSession()->setNotice($message);
             return $this->redirectToPostedUrl();
         }
+
+        $errorMessage = $collectionService->getLastError()
+            ?? Craft::t('super-favourite', 'Failed to delete collection.');
+
+        /** @var \craft\base\Model $collection */
+        if (!$collection->hasErrors()) {
+            $collection->addError('id', $errorMessage);
+        }
+        /** @var Collection $collection */
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => false,
-                'error' => Craft::t('super-favourite', 'Failed to delete collection.')
+                'error' => $errorMessage
             ]);
         }
 
-        Craft::$app->getSession()->setError(Craft::t('super-favourite', 'Failed to delete collection.'));
-        return $this->redirectToPostedUrl();
+        return $this->asModelFailure(
+            $collection,
+            $errorMessage,
+            'collection'
+        );
     }
 
     /**
@@ -295,6 +337,14 @@ class CollectionController extends Controller
     {
         $this->requirePostRequest();
         $this->requirePermission('super-favourite:manage-collections');
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!$this->canManageGlobalCollections($currentUser)) {
+            return $this->asJson([
+                'success' => false,
+                'message' => Craft::t('super-favourite', 'You do not have permission to manage global collections.')
+            ]);
+        }
 
         $request = Craft::$app->getRequest();
         $collectionId = $request->getBodyParam('id') ?? $request->getBodyParam('collectionId');
@@ -326,12 +376,97 @@ class CollectionController extends Controller
 
         $request = Craft::$app->getRequest();
         $collectionIds = $request->getRequiredBodyParam('ids');
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!$this->canManageGlobalCollections($currentUser)) {
+            $globalCollectionCount = Collection::find()
+                ->id($collectionIds)
+                ->userId(null)
+                ->count();
+
+            if ($globalCollectionCount > 0) {
+                return $this->asJson([
+                    'success' => false,
+                    'message' => Craft::t('super-favourite', 'You do not have permission to reorder global collections.')
+                ]);
+            }
+        }
 
         $success = Plugin::getInstance()->collection->reorderCollections($collectionIds);
 
         return $this->asJson([
             'success' => $success
         ]);
+    }
+
+    /**
+     * Returns whether a user can manage global/default collections.
+     *
+     * @param ?User $user The logged-in user, or null.
+     *
+     * @return bool Whether the user has global collection access.
+     */
+    private function canManageGlobalCollections(?User $user): bool
+    {
+        return $user !== null
+            && ($user->admin || $user->can('super-favourite:manage-global-collections'));
+    }
+
+    /**
+     * Returns whether a user can manage the supplied collection.
+     *
+     * @param Collection $collection The collection being acted on.
+     * @param ?User $user The logged-in user, or null.
+     *
+     * @return bool Whether the user can manage this collection.
+     */
+    private function canManageCollection(Collection $collection, ?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($collection->userId === null) {
+            return $this->canManageGlobalCollections($user);
+        }
+
+        return $user->admin
+            || $collection->userId === $user->id
+            || $user->can('super-favourite:manage-collections');
+    }
+
+    /**
+     * Sends a failed collection save back through Craft's route params.
+     *
+     * @param Collection $collection The unsaved collection with validation errors.
+     * @param string $message The base error message.
+     *
+     * @return ?Response The action response, or null to redisplay the current route.
+     */
+    private function collectionSaveFailure(Collection $collection, string $message): ?Response
+    {
+        $errors = $collection->getErrors();
+        $errorMessage = $message;
+
+        if (!empty($errors)) {
+            $errorList = [];
+            foreach ($errors as $fieldErrors) {
+                $errorList[] = implode(', ', $fieldErrors);
+            }
+            $errorMessage .= ' ' . implode(' ', $errorList);
+        }
+
+        if (Craft::$app->getRequest()->getAcceptsJson()) {
+            return $this->asModelFailure($collection, $errorMessage, 'collection');
+        }
+
+        Craft::$app->getSession()->setError($errorMessage);
+
+        Craft::$app->getUrlManager()->setRouteParams([
+            'collection' => $collection,
+        ]);
+
+        return null;
     }
 }
 

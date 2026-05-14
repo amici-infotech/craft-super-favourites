@@ -65,7 +65,7 @@ class Plugin extends CraftPlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '5.0.0';
+    public string $schemaVersion = '5.0.1';
 
     /**
      * @var bool
@@ -266,6 +266,9 @@ class Plugin extends CraftPlugin
                         ],
                         'super-favourite:manage-collections' => [
                             'label' => Craft::t('super-favourite', 'Manage collections'),
+                        ],
+                        'super-favourite:manage-global-collections' => [
+                            'label' => Craft::t('super-favourite', 'Manage global collections'),
                         ],
                     ],
                 ];
