@@ -40,6 +40,25 @@ class FavouriteItem extends Element
     private Element|false|null $_favouritedElement = null;
 
     /**
+     * Normalizes values before validation so saves can return model errors together.
+     *
+     * @return bool Whether validation should continue.
+     */
+    public function beforeValidate(): bool
+    {
+        if ($this->elementId && !$this->elementType) {
+            $element = Craft::$app->getElements()->getElementById($this->elementId);
+
+            if ($element) {
+                $this->elementType = get_class($element);
+                $this->_favouritedElement = $element;
+            }
+        }
+
+        return parent::beforeValidate();
+    }
+
+    /**
      * Returns the singular display name Craft shows for this element type.
      *
      * @return string The requested string value.
@@ -552,10 +571,112 @@ class FavouriteItem extends Element
         $rules[] = [['notes'], 'string'];
         $rules[] = [['sortOrder'], 'integer'];
 
-        // Custom validator for max favourites per collection
+        // Custom validators keep controller saves Craft-like: assign fields, save,
+        // then return every model error at once.
+        $rules[] = ['elementId', 'validateFavouritedElement'];
+        $rules[] = ['collectionId', 'validateCollection'];
+        $rules[] = ['elementType', 'validateAllowedElementType'];
+        $rules[] = ['elementId', 'validateDuplicateFavourite'];
         $rules[] = ['collectionId', 'validateMaxFavouritesPerCollection'];
 
         return $rules;
+    }
+
+    /**
+     * Validates that the posted element ID resolves to a Craft element.
+     *
+     * @return void Nothing is returned.
+     */
+    public function validateFavouritedElement(): void
+    {
+        if (!$this->elementId) {
+            return;
+        }
+
+        if (!$this->getFavouritedElement()) {
+            $this->addError('elementId', Craft::t('super-favourite', 'Could not determine the element type for this favourite.'));
+        }
+    }
+
+    /**
+     * Validates that the selected collection exists and can receive this favourite.
+     *
+     * @return void Nothing is returned.
+     */
+    public function validateCollection(): void
+    {
+        if (!$this->collectionId) {
+            return;
+        }
+
+        $collection = $this->getCollection();
+
+        if (!$collection) {
+            $this->addError('collectionId', Craft::t('super-favourite', 'Collection not found.'));
+            return;
+        }
+
+        if ($collection->userId !== null && $collection->userId !== $this->userId) {
+            $this->addError('collectionId', Craft::t('super-favourite',
+                'You do not have permission to add items to this collection. Only the collection owner can add items to personal collections.'
+            ));
+        }
+    }
+
+    /**
+     * Validates that the favourite's element type is allowed by the selected collection.
+     *
+     * @return void Nothing is returned.
+     */
+    public function validateAllowedElementType(): void
+    {
+        if (!$this->collectionId || !$this->elementType) {
+            return;
+        }
+
+        $collection = $this->getCollection();
+
+        if (!$collection) {
+            return;
+        }
+
+        $allowedElementTypes = $collection->allowedElementTypes;
+
+        if (empty($allowedElementTypes) || in_array($this->elementType, $allowedElementTypes, true)) {
+            return;
+        }
+
+        $elementTypeLabel = $this->elementType;
+        if (class_exists($this->elementType)) {
+            $elementTypeLabel = $this->elementType::displayName();
+        }
+
+        $this->addError('elementType', Craft::t('super-favourite',
+            '{elementType} is not allowed in this collection. Please select a different collection or element type.',
+            ['elementType' => $elementTypeLabel]
+        ));
+    }
+
+    /**
+     * Validates that the same user/collection/element favourite does not already exist.
+     *
+     * @return void Nothing is returned.
+     */
+    public function validateDuplicateFavourite(): void
+    {
+        if ($this->id !== null || !$this->userId || !$this->collectionId || !$this->elementId) {
+            return;
+        }
+
+        $existingFavourite = FavouriteItem::find()
+            ->userId($this->userId)
+            ->collectionId($this->collectionId)
+            ->elementId($this->elementId)
+            ->one();
+
+        if ($existingFavourite) {
+            $this->addError('elementId', Craft::t('super-favourite', 'This item is already in the selected collection.'));
+        }
     }
 
     /**
@@ -565,6 +686,10 @@ class FavouriteItem extends Element
      */
     public function validateMaxFavouritesPerCollection(): void
     {
+        if (!$this->collectionId) {
+            return;
+        }
+
         // Only validate for new favourites (id is null for new elements)
         if ($this->id !== null) {
             return;

@@ -569,6 +569,26 @@ class Collection extends Element
     }
 
     /**
+     * Normalizes values before validation so model rules see the final save shape.
+     *
+     * @return bool Whether validation should continue.
+     */
+    public function beforeValidate(): bool
+    {
+        if ($this->isDefault) {
+            $this->userId = null;
+        }
+
+        if (empty($this->handle) && !empty($this->name)) {
+            $this->handle = $this->generateUniqueHandle($this->name);
+        } elseif ($this->handle && $this->handleExists($this->handle)) {
+            $this->handle = $this->generateUniqueHandle($this->handle);
+        }
+
+        return parent::beforeValidate();
+    }
+
+    /**
      * Normalizes data before Craft saves the element.
      *
      * @param bool $isNew Whether Craft is saving a new element instead of updating an existing one.
@@ -577,30 +597,7 @@ class Collection extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-        // Default collections must be global before handle uniqueness is checked.
-        if ($this->isDefault) {
-            $this->userId = null;
-        }
-
-        // Generate handle if empty
-        if (empty($this->handle) && !empty($this->name)) {
-            $this->handle = $this->generateUniqueHandle($this->name);
-        } elseif ($this->handle && $this->handleExists($this->handle)) {
-            // If handle was provided but already exists, make it unique
-            $this->handle = $this->generateUniqueHandle($this->handle);
-        }
-
         $this->title = $this->name;
-
-        if (!$isNew && !$this->isDefault && !$this->allowUnsetDefault) {
-            $existingRecord = CollectionRecord::findOne($this->id);
-            if ($existingRecord && (bool)$existingRecord->isDefault) {
-                $this->addError('isDefault', Craft::t('super-favourite',
-                    'The default collection cannot be unset directly. Set another global collection as default instead.'
-                ));
-                return false;
-            }
-        }
 
         // If this collection is being set as default, unset any other default collections
         // Only one global collection can be default at a time
@@ -778,12 +775,63 @@ class Collection extends Element
         $rules[] = [['sortOrder'], 'integer'];
 
         // Custom validators
+        $rules[] = ['userId', 'validateGlobalPermission', 'on' => [Element::SCENARIO_LIVE, Element::SCENARIO_ESSENTIALS]];
+        $rules[] = ['isDefault', 'validateDefaultState', 'on' => [Element::SCENARIO_LIVE, Element::SCENARIO_ESSENTIALS]];
         $rules[] = ['userId', 'validateMaxCollectionsPerUser', 'on' => [Element::SCENARIO_LIVE, Element::SCENARIO_ESSENTIALS]];
         // Note: handle uniqueness is enforced in beforeSave() automatically (like Craft does with slugs)
 
         return $rules;
     }
 
+
+    /**
+     * Validates that the current user can create or edit global/default collections.
+     *
+     * @return void Nothing is returned.
+     */
+    public function validateGlobalPermission(): void
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!$currentUser instanceof User) {
+            $this->addError('userId', Craft::t('super-favourite', 'Please login to manage collections.'));
+            return;
+        }
+
+        $wasGlobal = false;
+        if ($this->id) {
+            $existingRecord = CollectionRecord::findOne($this->id);
+            $wasGlobal = $existingRecord && $existingRecord->userId === null;
+        }
+
+        if (($wasGlobal || $this->userId === null || $this->isDefault) && !$this->canManageGlobalCollections($currentUser)) {
+            $this->addError('userId', Craft::t('super-favourite', 'You do not have permission to create or edit global collections.'));
+        }
+    }
+
+    /**
+     * Validates default collection state before save.
+     *
+     * @return void Nothing is returned.
+     */
+    public function validateDefaultState(): void
+    {
+        if (!$this->id || $this->isDefault || $this->allowUnsetDefault) {
+            return;
+        }
+
+        $existingRecord = CollectionRecord::findOne($this->id);
+
+        if ($existingRecord && (bool)$existingRecord->isDefault) {
+            $this->addError('isDefault', Craft::t('super-favourite',
+                'The default collection cannot be unset directly. Set another global collection as default instead.'
+            ));
+        }
+    }
 
     /**
      * Validates the configured maximum collections per user.

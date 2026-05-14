@@ -6,7 +6,7 @@ All frontend forms need CSRF protection. Collection saving requires `super-favou
 
 Use one form for create, edit, global collections, user collections, default collections, allowed element types, and collection custom fields. The comments in the example explain what each field changes.
 
-The `_self.fieldErrors()` macro renders validation errors from the model Craft returns after a failed submit. Use the returned `collection` variable when it exists so submitted values and errors are preserved. Collection delete failures also return the failed `collection` model, so list pages can read `collection.getErrors()`.
+The `_self.fieldErrors()` macro renders validation errors from the model Craft returns after a failed submit. Use the returned `collection` variable when it exists so submitted values and errors are preserved. Collection saves validate the whole collection element at once, including global/default permissions. Collection delete failures also return the failed `collection` model, so list pages can read `collection.getErrors()`.
 
 ```twig
 {% macro fieldErrors(model, field) %}

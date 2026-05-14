@@ -357,85 +357,6 @@ class FavouriteController extends Controller
             $favouriteItem->collectionId = (int)$collectionIds;
         }
 
-        if (empty($favouriteItem->collectionId)) {
-            return $this->favouriteModelFailure(
-                $favouriteItem,
-                'collectionId',
-                Craft::t('super-favourite', 'Please select a collection.')
-            );
-        }
-
-        // Validation 1: Check collection ownership/permissions
-        $collection = Collection::find()
-            ->id($favouriteItem->collectionId)
-            ->one();
-
-        if (!$collection) {
-            return $this->favouriteModelFailure(
-                $favouriteItem,
-                'collectionId',
-                Craft::t('super-favourite', 'Collection not found.')
-            );
-        }
-
-        // If it's not a global collection, only the owner can add items
-        if ($collection->userId !== null && $collection->userId !== $favouriteItem->userId) {
-            return $this->favouriteModelFailure(
-                $favouriteItem,
-                'collectionId',
-                Craft::t('super-favourite', 'You do not have permission to add items to this collection. Only the collection owner can add items to personal collections.')
-            );
-        }
-
-        // Validation 2: Check allowed element types
-        $allowedElementTypes = $collection->allowedElementTypes;
-
-        // Empty array means all element types are allowed.
-        if (!empty($allowedElementTypes)) {
-            if (!in_array($favouriteItem->elementType, $allowedElementTypes)) {
-                // Get element type display name for better error message
-                $elementTypeLabel = $favouriteItem->elementType;
-                if (class_exists($favouriteItem->elementType)) {
-                    $elementTypeLabel = $favouriteItem->elementType::displayName();
-                }
-
-                $errorMessage = Craft::t('super-favourite', '{elementType} is not allowed in this collection. Please select a different collection or element type.', [
-                    'elementType' => $elementTypeLabel
-                ]);
-
-                return $this->favouriteModelFailure($favouriteItem, 'elementType', $errorMessage);
-            }
-        }
-
-        // Validation 3: Check for duplicate (same user, collection, and element)
-        // Only check for new items, not when editing existing ones
-        if (!$favouriteId) {
-            // Use element query to check for duplicates
-            $existingFavourite = FavouriteItem::find()
-                ->userId($favouriteItem->userId)
-                ->collectionId($favouriteItem->collectionId)
-                ->elementId($favouriteItem->elementId)
-                ->one();
-
-            if ($existingFavourite) {
-                // Item already exists in this collection
-                $message = Craft::t('super-favourite', 'This item is already in the selected collection.');
-
-                // Check if this is an AJAX request
-                if ($request->getAcceptsJson()) {
-                    return $this->asJson([
-                        'success' => true,
-                        'message' => $message,
-                        'favouriteId' => $existingFavourite->id
-                    ]);
-                }
-
-                // For regular form submissions
-                Craft::$app->getSession()->setNotice($message);
-                return $this->redirectToPostedUrl($favouriteItem);
-            }
-        }
-
         $favouriteItem->notes = $request->getBodyParam('notes');
 
         // Set custom field values from the 'fields' namespace
@@ -475,25 +396,16 @@ class FavouriteController extends Controller
 
         $request = Craft::$app->getRequest();
 
-        $elementId = $request->getRequiredBodyParam('elementId');
-        $elementType = $this->resolveElementType((int)$elementId, $request->getBodyParam('elementType'));
+        $elementId = $request->getBodyParam('elementId');
+        $elementType = $this->resolveElementType($elementId ? (int)$elementId : null, $request->getBodyParam('elementType'));
         $collectionId = $request->getBodyParam('collectionId');
         $notes = $request->getBodyParam('notes');
 
         $favourite = new FavouriteItem();
-        $favourite->elementId = (int)$elementId;
+        $favourite->elementId = $elementId ? (int)$elementId : null;
         $favourite->elementType = $elementType;
         $favourite->collectionId = $collectionId ? (int)$collectionId : null;
         $favourite->notes = $notes;
-
-        if ($elementType === null) {
-            return $this->favouriteModelFailure(
-                $favourite,
-                'elementId',
-                Craft::t('super-favourite', 'Could not determine the element type for this favourite.'),
-                'favourite'
-            );
-        }
 
         $currentUser = Craft::$app->getUser()->getIdentity();
 
@@ -502,64 +414,6 @@ class FavouriteController extends Controller
         }
 
         $favourite->userId = $currentUser->id;
-
-        if (!$collectionId) {
-            return $this->favouriteModelFailure(
-                $favourite,
-                'collectionId',
-                Craft::t('super-favourite', 'Please select a collection.'),
-                'favourite'
-            );
-        }
-
-        $collection = Collection::find()->id($collectionId)->one();
-        if (!$collection) {
-            return $this->favouriteModelFailure(
-                $favourite,
-                'collectionId',
-                Craft::t('super-favourite', 'Collection not found.'),
-                'favourite'
-            );
-        }
-
-        if ($collection->userId !== null && $collection->userId !== $currentUser->id) {
-            return $this->favouriteModelFailure(
-                $favourite,
-                'collectionId',
-                Craft::t('super-favourite', 'You do not have permission to add items to this collection.'),
-                'favourite'
-            );
-        }
-
-        $allowedElementTypes = $collection->allowedElementTypes;
-        if (!empty($allowedElementTypes) && !in_array($elementType, $allowedElementTypes, true)) {
-            return $this->favouriteModelFailure(
-                $favourite,
-                'elementType',
-                Craft::t('super-favourite', 'This element type is not allowed in the selected collection.'),
-                'favourite'
-            );
-        }
-
-        // Check for existing favourite to prevent duplicates
-        $existing = Plugin::getInstance()->favourite->checkDuplicate(
-            $currentUser->id,
-            (int)$collectionId,
-            (int)$elementId
-        );
-
-        if ($existing) {
-            // Return existing favourite instead of error
-            $favourite = FavouriteItem::find()->id($existing['id'])->one();
-            return $this->asModelSuccess(
-                $favourite,
-                Craft::t('super-favourite', 'Item is already in your favourites.'),
-                'favourite'
-            );
-        }
-
-        // Create new favourite item
-        $favourite->collectionId = (int)$collectionId;
 
         // Validate and save - this will populate validation errors if it fails
         if (!Craft::$app->getElements()->saveElement($favourite)) {

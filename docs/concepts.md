@@ -110,7 +110,7 @@ In frontend code, render options dynamically with `craft.superFavourite.getAvail
 {% endfor %}
 ```
 
-Always save through the plugin action/service. The controller checks the collection's allowed element types before saving a favourite. In templates and PHP, `collection.allowedElementTypes` is already an array; do not call `json_decode`.
+Always save through the plugin action/service. The favourite item element validates the collection's allowed element types before saving. In templates and PHP, `collection.allowedElementTypes` is already an array; do not call `json_decode`.
 
 ## Custom Fields on Collections
 

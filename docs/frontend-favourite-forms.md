@@ -2,7 +2,7 @@
 
 All frontend forms need CSRF protection. Most favourite actions require a logged-in user. Use `actionInput()` for normal Twig forms, or post to `/actions/...` with a CSRF token for JavaScript requests.
 
-Favourite save, add, move, and delete failures return the failed `favourite` model with errors attached for normal form submissions, and JSON errors plus a `favourite` payload for AJAX requests.
+Favourite save, add, move, and delete failures return the failed `favourite` model with errors attached for normal form submissions, and JSON errors plus a `favourite` payload for AJAX requests. Save/add actions validate the whole favourite item element at once, so missing collections, invalid collections, ownership errors, disallowed element types, duplicate favourites, and custom field errors can be displayed together.
 
 ## Favourite Save Form
 
