@@ -9,7 +9,8 @@ This documentation is split by task so you can find the right example quickly.
 - [Installation and Setup](installation.md) - install the plugin, enable it, and configure the basics.
 - [Core Concepts](concepts.md) - understand favourites, global collections, user collections, default collections, allowed element types, and custom fields.
 - [Backend Guide](backend.md) - Control Panel screens, settings, collection management, favourite management, and screenshot placeholders.
-- [Frontend Forms](frontend-forms.md) - copyable Twig forms for creating, editing, deleting, and using collections and favourites.
+- [Frontend Collection Forms](frontend-collection-forms.md) - copyable Twig forms for creating, editing, and deleting collections.
+- [Frontend Favourite Forms](frontend-favourite-forms.md) - copyable Twig forms for saving, removing, toggling, and moving favourites.
 
 ## Developer Reference
 

@@ -237,3 +237,154 @@ $favourites = FavouriteItem::find()
     ->all();
 ```
 
+## Service Events
+
+The collection and favourite services expose Yii events so custom modules/plugins can validate, cancel, audit, or react to plugin operations.
+
+Register listeners from your module or plugin `init()` method:
+
+```php
+use yii\base\Event;
+use craft\events\ModelEvent;
+use amici\SuperFavourite\Plugin;
+use amici\SuperFavourite\services\CollectionService;
+use amici\SuperFavourite\services\FavouriteService;
+
+Event::on(
+    CollectionService::class,
+    CollectionService::EVENT_BEFORE_DELETE_COLLECTION,
+    function(ModelEvent $event) {
+        $collection = $event->sender;
+
+        if ($collection->handle === 'protected') {
+            $collection->addError('id', 'This collection is protected.');
+            $event->isValid = false;
+        }
+    }
+);
+```
+
+Before events receive `craft\events\ModelEvent` and can cancel the operation by setting `$event->isValid = false`. The affected model/element is available as `$event->sender`.
+
+### Collection Events
+
+```php
+use yii\base\Event;
+use craft\events\ModelEvent;
+use amici\SuperFavourite\services\CollectionService;
+
+Event::on(
+    CollectionService::class,
+    CollectionService::EVENT_BEFORE_CREATE_COLLECTION,
+    function(ModelEvent $event) {
+        $collection = $event->sender;
+        // Validate or modify the collection before it is saved.
+    }
+);
+
+Event::on(
+    CollectionService::class,
+    CollectionService::EVENT_AFTER_CREATE_COLLECTION,
+    function(ModelEvent $event) {
+        $collection = $event->sender;
+        // Run post-create side effects, such as logging or syncing.
+    }
+);
+
+Event::on(
+    CollectionService::class,
+    CollectionService::EVENT_BEFORE_DELETE_COLLECTION,
+    function(ModelEvent $event) {
+        $collection = $event->sender;
+        // Set $event->isValid = false to block deletion.
+    }
+);
+
+Event::on(
+    CollectionService::class,
+    CollectionService::EVENT_AFTER_DELETE_COLLECTION,
+    function(ModelEvent $event) {
+        $collection = $event->sender;
+        // React after the collection element has been deleted.
+    }
+);
+```
+
+Available collection events:
+
+- `CollectionService::EVENT_BEFORE_CREATE_COLLECTION`
+- `CollectionService::EVENT_AFTER_CREATE_COLLECTION`
+- `CollectionService::EVENT_BEFORE_DELETE_COLLECTION`
+- `CollectionService::EVENT_AFTER_DELETE_COLLECTION`
+
+### Favourite Events
+
+```php
+use yii\base\Event;
+use craft\events\ModelEvent;
+use amici\SuperFavourite\services\FavouriteService;
+
+Event::on(
+    FavouriteService::class,
+    FavouriteService::EVENT_BEFORE_ADD_FAVOURITE,
+    function(ModelEvent $event) {
+        $favourite = $event->sender;
+        // Set $event->isValid = false to block adding the favourite.
+    }
+);
+
+Event::on(
+    FavouriteService::class,
+    FavouriteService::EVENT_AFTER_ADD_FAVOURITE,
+    function(ModelEvent $event) {
+        $favourite = $event->sender;
+        // React after a favourite has been saved.
+    }
+);
+
+Event::on(
+    FavouriteService::class,
+    FavouriteService::EVENT_BEFORE_REMOVE_FAVOURITE,
+    function(ModelEvent $event) {
+        $favourite = $event->sender;
+        // Set $event->isValid = false to skip removing this favourite.
+    }
+);
+
+Event::on(
+    FavouriteService::class,
+    FavouriteService::EVENT_AFTER_REMOVE_FAVOURITE,
+    function(ModelEvent $event) {
+        $favourite = $event->sender;
+        // React after a favourite has been removed.
+    }
+);
+
+Event::on(
+    FavouriteService::class,
+    FavouriteService::EVENT_BEFORE_MOVE_FAVOURITE,
+    function(ModelEvent $event) {
+        $favourite = $event->sender;
+        // Validate the move before the new collection is saved.
+    }
+);
+
+Event::on(
+    FavouriteService::class,
+    FavouriteService::EVENT_AFTER_MOVE_FAVOURITE,
+    function(ModelEvent $event) {
+        $favourite = $event->sender;
+        // React after a favourite has moved collections.
+    }
+);
+```
+
+Available favourite events:
+
+- `FavouriteService::EVENT_BEFORE_ADD_FAVOURITE`
+- `FavouriteService::EVENT_AFTER_ADD_FAVOURITE`
+- `FavouriteService::EVENT_BEFORE_REMOVE_FAVOURITE`
+- `FavouriteService::EVENT_AFTER_REMOVE_FAVOURITE`
+- `FavouriteService::EVENT_BEFORE_MOVE_FAVOURITE`
+- `FavouriteService::EVENT_AFTER_MOVE_FAVOURITE`
+
