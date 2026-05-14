@@ -375,11 +375,16 @@ class FavouriteController extends Controller
             );
         }
 
-        return $this->asModelSuccess(
-            $favouriteItem,
-            Craft::t('super-favourite', 'Favourite saved.'),
-            $isCpRequest ? 'favouriteItem' : 'favourite'
-        );
+        if ($isCpRequest) {
+            return $this->asModelSuccess(
+                $favouriteItem,
+                Craft::t('super-favourite', 'Favourite saved.'),
+                'favouriteItem',
+                ['success' => true]
+            );
+        }
+
+        return $this->asFavouriteModelSuccess($favouriteItem, Craft::t('super-favourite', 'Favourite saved.'));
     }
 
     /**
@@ -423,10 +428,10 @@ class FavouriteController extends Controller
             );
         }
 
-        return $this->asModelSuccess(
+        return $this->asFavouriteModelSuccess(
             $favourite,
             Craft::t('super-favourite', 'Item added to favourites.'),
-            'favourite'
+            ['action' => 'added']
         );
     }
 
@@ -444,7 +449,7 @@ class FavouriteController extends Controller
 
         $request = Craft::$app->getRequest();
 
-        $elementId = $request->getRequiredBodyParam('elementId');
+        $elementId = $request->getBodyParam('elementId');
         $collectionId = $request->getBodyParam('collectionId');
 
         $currentUser = Craft::$app->getUser()->getIdentity();
@@ -453,14 +458,25 @@ class FavouriteController extends Controller
             return $this->asFailure(Craft::t('super-favourite', 'User must be logged in.'));
         }
 
-        $favouriteItem = FavouriteItem::find()
-            ->userId($currentUser->id)
-            ->elementId((int)$elementId)
-            ->collectionId($collectionId ? (int)$collectionId : null)
-            ->one();
+        $favouriteItem = null;
+
+        if ($elementId) {
+            $query = FavouriteItem::find()
+                ->userId($currentUser->id)
+                ->elementId((int)$elementId);
+
+            if ($collectionId) {
+                $query->collectionId((int)$collectionId);
+            }
+
+            $favouriteItem = $query->one();
+        }
 
         if (!$favouriteItem) {
             $favouriteItem = new FavouriteItem();
+            $favouriteItem->userId = $currentUser->id;
+            $favouriteItem->elementId = $elementId ? (int)$elementId : null;
+            $favouriteItem->collectionId = $collectionId ? (int)$collectionId : null;
             return $this->favouriteModelFailure(
                 $favouriteItem,
                 'elementId',
@@ -485,7 +501,11 @@ class FavouriteController extends Controller
             );
         }
 
-        return $this->asSuccess(Craft::t('super-favourite', 'Item removed from favourites.'));
+        return $this->asFavouriteModelSuccess(
+            $favouriteItem,
+            Craft::t('super-favourite', 'Item removed from favourites.'),
+            ['action' => 'removed']
+        );
     }
 
     /**
@@ -502,9 +522,9 @@ class FavouriteController extends Controller
 
         $request = Craft::$app->getRequest();
 
-        $elementId = $request->getRequiredBodyParam('elementId');
-        $elementType = $this->resolveElementType((int)$elementId, $request->getBodyParam('elementType'));
-        $collectionId = $request->getRequiredBodyParam('collectionId');
+        $elementId = $request->getBodyParam('elementId');
+        $elementType = $this->resolveElementType($elementId ? (int)$elementId : null, $request->getBodyParam('elementType'));
+        $collectionId = $request->getBodyParam('collectionId');
 
         $currentUser = Craft::$app->getUser()->getIdentity();
 
@@ -512,47 +532,55 @@ class FavouriteController extends Controller
             return $this->asFailure(Craft::t('super-favourite', 'User must be logged in.'));
         }
 
-        if ($elementType === null) {
-            $favourite = new FavouriteItem();
-            $favourite->elementId = (int)$elementId;
-            return $this->favouriteModelFailure(
-                $favourite,
-                'elementId',
-                Craft::t('super-favourite', 'Could not determine the element type for this favourite.'),
-                'favourite'
+        $existingFavourite = null;
+
+        if ($elementId && $collectionId) {
+            $existingFavourite = FavouriteItem::find()
+                ->userId($currentUser->id)
+                ->collectionId((int)$collectionId)
+                ->elementId((int)$elementId)
+                ->one();
+        }
+
+        if ($existingFavourite) {
+            if (!Craft::$app->getElements()->deleteElement($existingFavourite, true)) {
+                /** @var \craft\base\Model $existingFavourite */
+                if (!$existingFavourite->hasErrors()) {
+                    $existingFavourite->addError('id', Craft::t('super-favourite', 'Failed to remove item from favourites.'));
+                }
+                /** @var FavouriteItem $existingFavourite */
+
+                return $this->asFavouriteModelFailure(
+                    $existingFavourite,
+                    Craft::t('super-favourite', 'Failed to remove item from favourites.')
+                );
+            }
+
+            return $this->asFavouriteModelSuccess(
+                $existingFavourite,
+                Craft::t('super-favourite', 'Item removed from favourites.'),
+                ['action' => 'removed']
             );
         }
 
-        // Toggle favourite using service
-        $result = Plugin::getInstance()->favourite->toggleFavourite(
-            (int)$elementId,
-            $elementType,
-            (int)$collectionId,
-            $currentUser->id
+        $favourite = new FavouriteItem();
+        $favourite->userId = $currentUser->id;
+        $favourite->collectionId = $collectionId ? (int)$collectionId : null;
+        $favourite->elementId = $elementId ? (int)$elementId : null;
+        $favourite->elementType = $elementType;
+
+        if (!Craft::$app->getElements()->saveElement($favourite)) {
+            return $this->asFavouriteModelFailure(
+                $favourite,
+                Craft::t('super-favourite', "Couldn't save favourite.")
+            );
+        }
+
+        return $this->asFavouriteModelSuccess(
+            $favourite,
+            Craft::t('super-favourite', 'Item added to favourites.'),
+            ['action' => 'added']
         );
-
-        // Check if operation was successful
-        if (!$result['success']) {
-            $favourite = new FavouriteItem();
-            $favourite->userId = $currentUser->id;
-            $favourite->collectionId = (int)$collectionId;
-            $favourite->elementId = (int)$elementId;
-            $favourite->elementType = $elementType;
-
-            return $this->favouriteModelFailure(
-                $favourite,
-                'id',
-                $result['error'] ?? Craft::t('super-favourite', 'Failed to toggle favourite.')
-            );
-        }
-
-        // Set appropriate message based on action taken
-        $message = $result['action'] === 'added'
-            ? Craft::t('super-favourite', 'Item added to favourites.')
-            : Craft::t('super-favourite', 'Item removed from favourites.');
-
-        // Return success with full result data for AJAX
-        return $this->asSuccess($message, data: $result);
     }
 
     /**
@@ -608,9 +636,13 @@ class FavouriteController extends Controller
 
         $favouriteId = $request->getBodyParam('id') ?? $request->getBodyParam('favouriteId');
         if (!$favouriteId) {
-            throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
+            return $this->favouriteModelFailure(
+                new FavouriteItem(),
+                'id',
+                Craft::t('super-favourite', 'Please select a favourite item.')
+            );
         }
-        $newCollectionId = $request->getRequiredBodyParam('collectionId');
+        $newCollectionId = $request->getBodyParam('collectionId');
         $favouriteItem = FavouriteItem::find()->id($favouriteId)->one();
 
         if (!$favouriteItem) {
@@ -624,23 +656,20 @@ class FavouriteController extends Controller
             );
         }
 
-        // Attempt to move favourite to new collection
-        $success = Plugin::getInstance()->favourite->moveFavourite(
-            (int)$favouriteId,
-            (int)$newCollectionId
-        );
+        $favouriteItem->collectionId = $newCollectionId ? (int)$newCollectionId : null;
 
-        if (!$success) {
-            /** @var \craft\base\Model $favouriteItem */
-            $favouriteItem->addError('collectionId', Craft::t('super-favourite', 'Failed to move favourite.'));
-            /** @var FavouriteItem $favouriteItem */
+        if (!Craft::$app->getElements()->saveElement($favouriteItem)) {
             return $this->asFavouriteModelFailure(
                 $favouriteItem,
                 Craft::t('super-favourite', 'Failed to move favourite.')
             );
         }
 
-        return $this->asSuccess(Craft::t('super-favourite', 'Favourite moved to new collection.'));
+        return $this->asFavouriteModelSuccess(
+            $favouriteItem,
+            Craft::t('super-favourite', 'Favourite moved to new collection.'),
+            ['action' => 'moved']
+        );
     }
 
     /**
@@ -658,7 +687,11 @@ class FavouriteController extends Controller
         $request = Craft::$app->getRequest();
         $favouriteId = $request->getBodyParam('id') ?? $request->getBodyParam('favouriteId');
         if (!$favouriteId) {
-            throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
+            return $this->favouriteModelFailure(
+                new FavouriteItem(),
+                'id',
+                Craft::t('super-favourite', 'Please select a favourite item.')
+            );
         }
 
         // Find the favourite item to delete
@@ -703,10 +736,10 @@ class FavouriteController extends Controller
             );
         }
 
-        return $this->asModelSuccess(
+        return $this->asFavouriteModelSuccess(
             $favouriteItem,
             Craft::t('super-favourite', 'Favourite removed.'),
-            'favourite'
+            ['action' => 'deleted']
         );
     }
 
@@ -752,10 +785,40 @@ class FavouriteController extends Controller
             $favouriteItem,
             $message,
             $variableName,
-            [],
+            ['success' => false],
             [
                 'favourite' => $favouriteItem,
                 'favouriteItem' => $favouriteItem,
+            ]
+        );
+    }
+
+    /**
+     * Returns a model success with the frontend-friendly `favourite` variable.
+     *
+     * @param FavouriteItem $favouriteItem The successful favourite model.
+     * @param string $message The success message.
+     * @param array $data Extra JSON response data.
+     *
+     * @return Response The Craft model success response.
+     */
+    private function asFavouriteModelSuccess(
+        FavouriteItem $favouriteItem,
+        string $message,
+        array $data = []
+    ): Response
+    {
+        return $this->asModelSuccess(
+            $favouriteItem,
+            $message,
+            'favourite',
+            $data + [
+                'success' => true,
+                'favouriteId' => $favouriteItem->id,
+                'elementId' => $favouriteItem->elementId,
+                'elementType' => $favouriteItem->elementType,
+                'collectionId' => $favouriteItem->collectionId,
+                'favouriteItem' => $favouriteItem->toArray(),
             ]
         );
     }

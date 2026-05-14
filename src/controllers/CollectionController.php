@@ -201,7 +201,8 @@ class CollectionController extends Controller
             return $this->asModelSuccess(
                 $collection,
                 Craft::t('super-favourite', 'Collection saved.'),
-                'collection'
+                'collection',
+                ['success' => true]
             );
         }
 
@@ -225,7 +226,14 @@ class CollectionController extends Controller
         $request = Craft::$app->getRequest();
         $collectionId = $request->getBodyParam('id') ?? $request->getBodyParam('collectionId');
         if (!$collectionId) {
-            throw new \yii\web\BadRequestHttpException('Missing required body parameter: id');
+            $missingCollection = new Collection();
+            $missingCollection->addError('id', Craft::t('super-favourite', 'Please select a collection.'));
+            return $this->asModelFailure(
+                $missingCollection,
+                Craft::t('super-favourite', 'Please select a collection.'),
+                'collection',
+                ['success' => false]
+            );
         }
 
         // Get the collection to check ownership
@@ -237,7 +245,8 @@ class CollectionController extends Controller
             return $this->asModelFailure(
                 $missingCollection,
                 Craft::t('super-favourite', 'Collection not found.'),
-                'collection'
+                'collection',
+                ['success' => false]
             );
         }
 
@@ -252,7 +261,8 @@ class CollectionController extends Controller
             return $this->asModelFailure(
                 $collection,
                 Craft::t('super-favourite', 'You do not have permission to delete this collection.'),
-                'collection'
+                'collection',
+                ['success' => false]
             );
         }
 
@@ -291,7 +301,8 @@ class CollectionController extends Controller
         return $this->asModelFailure(
             $collection,
             $errorMessage,
-            'collection'
+            'collection',
+            ['success' => false]
         );
     }
 
@@ -426,7 +437,12 @@ class CollectionController extends Controller
         }
 
         if (Craft::$app->getRequest()->getAcceptsJson()) {
-            return $this->asModelFailure($collection, $errorMessage, 'collection');
+            return $this->asModelFailure(
+                $collection,
+                $errorMessage,
+                'collection',
+                ['success' => false]
+            );
         }
 
         Craft::$app->getUrlManager()->setRouteParams([

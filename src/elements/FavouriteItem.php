@@ -664,15 +664,20 @@ class FavouriteItem extends Element
      */
     public function validateDuplicateFavourite(): void
     {
-        if ($this->id !== null || !$this->userId || !$this->collectionId || !$this->elementId) {
+        if (!$this->userId || !$this->collectionId || !$this->elementId) {
             return;
         }
 
-        $existingFavourite = FavouriteItem::find()
+        $query = FavouriteItem::find()
             ->userId($this->userId)
             ->collectionId($this->collectionId)
-            ->elementId($this->elementId)
-            ->one();
+            ->elementId($this->elementId);
+
+        if ($this->id) {
+            $query->id('not ' . $this->id);
+        }
+
+        $existingFavourite = $query->one();
 
         if ($existingFavourite) {
             $this->addError('elementId', Craft::t('super-favourite', 'This item is already in the selected collection.'));

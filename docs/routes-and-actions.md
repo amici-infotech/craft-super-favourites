@@ -65,7 +65,7 @@ Fields:
 
 Requires login. Admins can delete any collection; users can delete their own collections. Global collections require admin access or `super-favourite:manage-global-collections`. Without `deleteItems`, collections that still contain enabled favourite items cannot be deleted.
 
-Non-JSON failures return the failed `collection` model via Craft's model failure response. JSON failures return `success: false` with an error message.
+Non-JSON failures return the failed `collection` model via Craft's model failure response. JSON success and failure responses include a boolean `success` value.
 
 ### Set Default Collection
 
@@ -148,7 +148,7 @@ Fields:
 
 CP requests require `super-favourite:manage-favourites`. Frontend requests require login.
 
-Non-JSON failures return the failed `favouriteItem` model via Craft's model failure response. JSON failures return `success: false` with an error message/errors payload.
+Frontend non-JSON failures return the failed `favourite` model via Craft's model failure response. JSON success and failure responses include `success` and a `favourite` payload; failures also include Craft's `errors` payload.
 
 ### Remove Favourite by Element
 
@@ -167,7 +167,7 @@ Fields:
 
 Requires login.
 
-Non-JSON failures return the failed `favourite` model when a favourite item can be identified.
+Non-JSON failures return the failed `favourite` model when a favourite item can be identified. JSON success and failure responses include `success` and a `favourite` payload.
 
 ### Toggle Favourite
 
@@ -187,16 +187,13 @@ Fields:
 
 Requires login.
 
-Non-JSON failures return the failed `favourite` model. JSON failures return `success: false` with an error message/errors payload.
+Non-JSON failures return the failed `favourite` model. JSON success and failure responses include `success` and a `favourite` payload; failures also include Craft's `errors` payload.
 
-Successful responses include data with:
+Successful responses include Craft's model success data plus:
 
 - `success`
 - `action` - `added` or `removed`
-- `favouriteId`
-- `elementId`
-- `elementType`
-- `collectionId`
+- `favourite` - the favourite item model data.
 
 ### Check Favourite
 
