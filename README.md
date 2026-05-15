@@ -18,7 +18,7 @@ Super Favourite adds wishlist-style favourites to Craft CMS. Users can save Craf
 
 ## Installation
 
-For local development, add the plugin as a path repository in the Craft project's `composer.json`, then install it:
+For local development, add the plugin your Craft project:
 
 ```bash
 composer require amici/craft-super-favourite
@@ -66,5 +66,5 @@ The plugin registers permissions for viewing and managing favourites and collect
 
 ## License
 
-Proprietary - Copyright (c) 2024 Amici Infotech
+Proprietary - Copyright (c) 2026 Amici Infotech
 
