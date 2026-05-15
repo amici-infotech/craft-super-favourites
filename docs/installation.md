@@ -8,23 +8,15 @@
 
 ## Install From a Local Path Repository
 
-Add the plugin path to the root Craft project's `composer.json`:
+Add the plugin your Craft project:
 
-```json
-{
-  "repositories": [
-    {
-      "type": "path",
-      "url": "../craft-plugins-v5/craft-super-favourite"
-    }
-  ]
-}
+```bash
+composer require amici/craft-super-favourite
 ```
 
 Then install and enable it:
 
 ```bash
-composer require amici/craft-super-favourite
 php craft plugin/install super-favourite
 ```
 
