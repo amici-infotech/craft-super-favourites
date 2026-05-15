@@ -27,11 +27,13 @@ php craft plugin/install super-favourite
 
 You can also install it from **Settings -> Plugins** in the Craft Control Panel.
 
-For the full setup flow, see [Installation and Setup](docs/installation.md).
+For the full setup flow, see the [Super Favourite documentation](https://docs.amiciinfotech.com/craft-cms/super-favourite).
 
 ## Documentation
 
-Detailed docs are split by task:
+Read the full documentation at [docs.amiciinfotech.com/craft-cms/super-favourite](https://docs.amiciinfotech.com/craft-cms/super-favourite).
+
+Local docs are also split by task:
 
 - [Documentation Home](docs/README.md)
 - [Installation and Setup](docs/installation.md)
