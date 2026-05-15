@@ -10,7 +10,7 @@ Main sections:
 - **Favourites** - create and manage favourite item elements.
 - **Settings** - configure general settings and field layouts.
 
-[screenshot for backend plugin navigation]
+![Backend plugin navigation](images/sfc-backend-navigation.png)
 
 ## Collections Index
 
