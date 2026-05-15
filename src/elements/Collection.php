@@ -3,7 +3,6 @@ namespace amici\SuperFavourite\elements;
 
 use Craft;
 use craft\base\Element;
-use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
@@ -18,6 +17,7 @@ use amici\SuperFavourite\elements\db\CollectionQuery;
 use amici\SuperFavourite\records\CollectionRecord;
 use amici\SuperFavourite\Plugin;
 use amici\SuperFavourite\conditions\CollectionCondition;
+use amici\SuperFavourite\elements\actions\DeleteCollection;
 
 /**
  * Collection Element
@@ -301,8 +301,8 @@ class Collection extends Element
         // Custom duplicate action that handles our Collection properly
         // $actions[] = DuplicateCollection::class;
 
-        // Delete action
-        $actions[] = Delete::class;
+        // Delete action with accurate validation failure messages.
+        $actions[] = DeleteCollection::class;
 
         // Restore action (for trashed elements)
         $actions[] = Restore::class;

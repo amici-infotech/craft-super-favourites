@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 5.0.0 - 2026-05-14
+## 5.0.0 - 2026-05-15
 
 ### Added
 - Initial Craft CMS 5 release.
@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fixed validation and error reporting so frontend forms receive failed `collection` or `favourite` models with attached errors.
 - Fixed AJAX collection and favourite actions returning redirects instead of JSON model responses.
+- Fixed backend collection deletes reporting success when element validation blocked deletion.
 - Fixed duplicate favourite handling with element-level validation.
 - Fixed permission gaps around creating, editing, and deleting global/default collections.
 - Fixed unsetting the active default collection directly.
