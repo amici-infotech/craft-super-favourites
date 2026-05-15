@@ -29,7 +29,7 @@ Use this screen to:
 - Edit a collection.
 - Delete a collection when it is allowed.
 
-[screenshot for backend collections index]
+![Backend Collection List](images/sfc-collections-table.png)
 
 ## Create or Edit a Collection
 
@@ -50,7 +50,8 @@ Creating, editing, deleting, reordering, or setting default global collections r
 
 An existing default collection cannot be unset directly. Set another global collection as default instead, which automatically clears the previous default.
 
-[screenshot for backend collection create/edit form showing user, default, and allowed element type fields]
+![Edit collections (Default fields)](images/sfc-edit-collection-main.png)
+![Edit collections (Custom fields)](images/sfc-edit-collection-custom-fields.png)
 
 ## Collection Custom Fields
 
@@ -62,11 +63,7 @@ Super Favourite -> Settings -> Collection Fields
 
 Use this when collections need editorial metadata, display settings, image fields, or any other Craft custom field.
 
-[screenshot for backend collection field layout page]
-
-After adding fields, the fields appear as tabs on the collection edit screen.
-
-[screenshot for backend collection custom field tab]
+![Collection Field Layout](images/collections-custom-fields.png)
 
 ## Favourites Index
 
@@ -85,7 +82,7 @@ Use this screen to:
 - Edit notes or custom fields.
 - Delete favourite items.
 
-[screenshot for backend favourites index]
+![Backend favourites List](images/sfc-fav-items-table)
 
 ## Create a Favourite in the CP
 
@@ -98,7 +95,9 @@ Use this screen to:
 7. Add notes or custom field values.
 8. Save.
 
-[screenshot for backend create favourite form]
+![Favourite Item Form](images/sfc-add-fav-main.png)
+![Favourite Item Form Select Element Type](images/sfc-add-fav-main-select-element.png)
+![Favourite Item Form Custom Fields](images/sfc-add-fav-custom-fields.png)
 
 ## Favourite Custom Fields
 
@@ -110,7 +109,7 @@ Super Favourite -> Settings -> Favourite Fields
 
 Use this when saved items need metadata such as reason, priority, reminder date, or editorial notes.
 
-[screenshot for backend favourite field layout page]
+![Favourite Item Field Layout](images/fav-item-custom-fields.png)
 
 ## Delete Rules
 

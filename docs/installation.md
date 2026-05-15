@@ -39,7 +39,7 @@ You can also install it from the Control Panel at **Settings -> Plugins**.
 5. Go to **Super Favourite -> Settings -> Favourite Fields** if favourite items need custom fields.
 6. Go to **Super Favourite -> Collections** and create at least one default/global collection.
 
-[screenshot for backend settings general page]
+![General Settings](images/general-settings.png)
 
 ## Settings
 
@@ -54,9 +54,8 @@ Field layout screens support:
 - Collection custom fields.
 - Favourite item custom fields.
 
-[screenshot for collection field layout settings page]
-
-[screenshot for favourite field layout settings page]
+![Collections Field layout](images/collections-custom-fields.png)
+![Favourite Item Field layout](images/fav-item-custom-fields.png)
 
 ## Default Collection
 

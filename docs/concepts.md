@@ -48,7 +48,7 @@ Use global collections for site-wide lists such as:
 
 In the Control Panel, leave **Assign to User** empty to create a global collection. This requires admin access or `super-favourite:manage-global-collections`.
 
-[screenshot for creating global collection in backend]
+![Create new collection form](images/new-collection-form.png)
 
 ## User Collections
 
@@ -69,7 +69,7 @@ Use user collections for personal lists such as:
 
 In the Control Panel, choose a user in **Assign to User**.
 
-[screenshot for assigning collection to user in backend]
+![Assign User in collection form](images/assign-user-new-collection-form.png)
 
 ## Default Collections
 
@@ -95,7 +95,7 @@ Examples:
 
 In the CP, use **Allowed Element Types** on the collection edit screen.
 
-[screenshot for allowed element types field]
+![Assign Element type in collection form](images/assign-element-types-new-collection-form.png)
 
 In frontend code, render options dynamically with `craft.superFavourite.getAvailableElementTypes()` so the form follows the element types registered in Craft:
 
