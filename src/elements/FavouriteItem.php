@@ -471,7 +471,10 @@ class FavouriteItem extends Element
     public function getCollection()
     {
         if ($this->_collection === null && $this->collectionId) {
-            $this->_collection = Collection::find()->id($this->collectionId)->one() ?: false;
+            $this->_collection = Collection::find()
+                ->id($this->collectionId)
+                ->status(null)
+                ->one() ?: false;
         }
         return $this->_collection ?: null;
     }
@@ -487,6 +490,7 @@ class FavouriteItem extends Element
             if (class_exists($this->elementType)) {
                 $this->_favouritedElement = $this->elementType::find()
                     ->id($this->elementId)
+                    ->status(null)
                     ->one() ?: false;
             } else {
                 $this->_favouritedElement = false;

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+- Added Control Panel breadcrumbs across collection, favourite item, and settings screens.
+
+### Fixed
+- Fixed disabled collections and favourite items not loading from their backend detail/edit pages.
+- Fixed backend detail page **Enabled** lightswitch changes not being saved for collections and favourite items.
+
 ## 5.0.0 - 2026-05-15
 
 ### Added

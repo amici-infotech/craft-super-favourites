@@ -29,6 +29,8 @@ Use this screen to:
 - Edit a collection.
 - Delete a collection when it is allowed.
 
+Collections can be disabled or re-enabled from the backend detail page with the **Enabled** lightswitch. Disabled collections can still be opened from the backend detail page.
+
 ![Backend Collection List](images/sfc-collections-table.png)
 
 ## Create or Edit a Collection
@@ -81,6 +83,8 @@ Use this screen to:
 - Filter by favourited element type.
 - Edit notes or custom fields.
 - Delete favourite items.
+
+Favourite items can be disabled or re-enabled from the backend detail page with the **Enabled** lightswitch. Disabled favourite items can still be opened from the backend detail page.
 
 ![Backend favourites List](images/sfc-fav-items-table)
 

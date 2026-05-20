@@ -204,7 +204,10 @@ class FavouriteController extends Controller
         $elementsService = Craft::$app->getElements();
 
         if ($favouriteItem === null && $favouriteId !== null) {
-            $favouriteItem = $elementsService->getElementById($favouriteId, FavouriteItem::class);
+            $favouriteItem = FavouriteItem::find()
+                ->id($favouriteId)
+                ->status(null)
+                ->one();
 
             if (!$favouriteItem) {
                 throw new \yii\web\NotFoundHttpException('Favourite item not found');
@@ -226,11 +229,16 @@ class FavouriteController extends Controller
             $elementTypes[$elementType] = $elementType::displayName();
         }
 
-        $collections = Collection::find()->all();
+        $collections = Collection::find()
+            ->status(null)
+            ->all();
 
         $favouritedElement = null;
         if ($favouriteItem->elementId && $favouriteItem->elementType) {
-            $favouritedElement = $elementsService->getElementById($favouriteItem->elementId, $favouriteItem->elementType);
+            $favouritedElement = $favouriteItem->elementType::find()
+                ->id($favouriteItem->elementId)
+                ->status(null)
+                ->one();
         }
 
         $elementTypeLabel = null;
@@ -288,7 +296,10 @@ class FavouriteController extends Controller
         }
 
         if ($favouriteId) {
-            $favouriteItem = FavouriteItem::find()->id($favouriteId)->one();
+            $favouriteItem = FavouriteItem::find()
+                ->id($favouriteId)
+                ->status(null)
+                ->one();
 
             if (!$favouriteItem) {
                 throw new \yii\web\NotFoundHttpException('Favourite item not found');
@@ -304,6 +315,10 @@ class FavouriteController extends Controller
         $fieldLayout = $favouriteItem->getFieldLayout();
         if ($fieldLayout) {
             $favouriteItem->fieldLayoutId = $fieldLayout->id;
+        }
+
+        if ($request->getBodyParam('enabled') !== null) {
+            $favouriteItem->enabled = (bool)$request->getBodyParam('enabled');
         }
 
         // Get elementId - handle both CP (array) and frontend (simple value) formats
@@ -643,7 +658,10 @@ class FavouriteController extends Controller
             );
         }
         $newCollectionId = $request->getBodyParam('collectionId');
-        $favouriteItem = FavouriteItem::find()->id($favouriteId)->one();
+        $favouriteItem = FavouriteItem::find()
+            ->id($favouriteId)
+            ->status(null)
+            ->one();
 
         if (!$favouriteItem) {
             $favouriteItem = new FavouriteItem();
@@ -697,6 +715,7 @@ class FavouriteController extends Controller
         // Find the favourite item to delete
         $favouriteItem = FavouriteItem::find()
             ->id($favouriteId)
+            ->status(null)
             ->one();
 
         if (!$favouriteItem) {

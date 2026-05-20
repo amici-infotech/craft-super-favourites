@@ -13,8 +13,8 @@
 {% set selectedSubnavItem = 'settings' %}
 
 {% set crumbs = [
-    { label: "Settings"|t('app'), url: url('settings') },
-    { label: "Plugins"|t('app'), url: url('settings/plugins') },
+    { label: "Super Favourite"|t('super-favourite'), url: cpUrl('super-favourite') },
+    { label: "Settings"|t('super-favourite'), url: cpUrl('super-favourite/settings/general') },
 ] %}
 
 {# Sidebar navigation items - All settings are project config #}

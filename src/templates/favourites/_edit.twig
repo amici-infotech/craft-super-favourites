@@ -9,6 +9,10 @@
 {% set saveShortcutRedirect = 'super-favourite/favourites/{id}' %}
 {% set selectedTab = 'favourite-details' %}
 {% set selectedSubnavItem = 'favourites' %}
+{% set crumbs = [
+    { label: "Super Favourite"|t('super-favourite'), url: cpUrl('super-favourite') },
+    { label: "Favourites"|t('super-favourite'), url: cpUrl('super-favourite/favourites') },
+] %}
 
 {% block content %}
     <div id="favourite-details">

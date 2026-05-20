@@ -49,7 +49,10 @@ class CollectionController extends Controller
         $canManageGlobalCollections = $this->canManageGlobalCollections($currentUser);
 
         if ($collection === null && $collectionId !== null) {
-            $collection = Collection::find()->id($collectionId)->one();
+            $collection = Collection::find()
+                ->id($collectionId)
+                ->status(null)
+                ->one();
 
             if (!$collection) {
                 throw new \yii\web\NotFoundHttpException('Collection not found');
@@ -120,7 +123,10 @@ class CollectionController extends Controller
         $collectionId = $request->getBodyParam('id') ?? $request->getBodyParam('collectionId');
 
         if ($collectionId) {
-            $collection = Collection::find()->id($collectionId)->one();
+            $collection = Collection::find()
+                ->id($collectionId)
+                ->status(null)
+                ->one();
 
             if (!$collection) {
                 throw new \yii\web\NotFoundHttpException('Collection not found');
@@ -142,6 +148,9 @@ class CollectionController extends Controller
 
         // Set attributes
         $collection->name = $request->getBodyParam('name');
+        if ($request->getBodyParam('enabled') !== null) {
+            $collection->enabled = (bool)$request->getBodyParam('enabled');
+        }
 
         // Only set handle if it's not empty (allow auto-generation in beforeSave)
         $handle = $request->getBodyParam('handle');
@@ -237,7 +246,10 @@ class CollectionController extends Controller
         }
 
         // Get the collection to check ownership
-        $collection = Collection::find()->id($collectionId)->one();
+        $collection = Collection::find()
+            ->id($collectionId)
+            ->status(null)
+            ->one();
 
         if (!$collection) {
             $missingCollection = new Collection();
